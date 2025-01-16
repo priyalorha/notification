@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="logPath">/Users/adyogi/Priya/springboot_project/notification/log</Property>
+        <Property name="rollingFileName">notification</Property>
+        <Property name="LOG_PATTERN">
+            %-d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - client_id=%X{client_id} - %m%n
+        </Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}}" />
+        </Console>
+        <RollingFile name="RollingName" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}.log">
+            <PatternLayout>
+                <Pattern>
+                    ${LOG_PATTERN}
+                </Pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- Causes a rollover once the date/time pattern no longer applies to the active file -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.apache.parquet" level="error" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.apache.hadoop" level="error" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingName"/>
+        </Root>
+    </Loggers>
+</Configuration>

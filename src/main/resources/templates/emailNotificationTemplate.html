@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+</head>
+<body>
+<div class="container">
+    <h1>🔔 Your Daily Alerts Summary</h1>
+    <p>Hello,</p>
+    <p>We’ve compiled today’s alerts that need your attention to ensure optimal performance. Below is a summary:</p>
+
+    <div class="alert-section" th:if="${not #lists.isEmpty(stoplossAlerts)}">
+        <h2 class="alert-title">Stoploss Alerts</h2>
+        <div th:each="alert : ${stoplossAlerts}" class="alert-item">
+            <p><strong th:text="${alert.title}"></strong>: <span th:text="${alert.description}"></span></p>
+            <p><strong>Impact:</strong> <span th:text="${alert.impact}"></span></p>
+            <p><strong>Action Required:</strong> <span th:text="${alert.action}"></span></p>
+            <a th:if="${not #strings.isEmpty(alert.ctaUrl) and not #strings.isEmpty(alert.ctaText)}"
+               th:href="@{${alert.ctaUrl}}"
+               class="cta-button"
+               th:text="${alert.ctaText}">CTA</a>
+        </div>
+    </div>
+
+    <div class="alert-section" th:if="${not #lists.isEmpty(productsets)}">
+        <h2 class="alert-title">Productset Alerts</h2>
+        <p>We’ve identified an issue with one or more of your Productsets. These Productsets currently have no active products - 0 Products, which may disrupt campaigns linked to them.</p>
+        <div th:each="productset : ${productsets}" class="alert-item">
+            <p><strong th:text="${productset.name}"></strong><br>
+                <strong>Impact:</strong> <span th:text="${productset.impact}"></span><br>
+                <strong>Action:</strong> <span th:text="${productset.action}"></span></p>
+        </div>
+    </div>
+
+    <div class="alert-section" th:if="${not #lists.isEmpty(integrationAlerts)}">
+        <h2 class="alert-title">Integration Alerts</h2>
+        <div th:each="integration : ${integrationAlerts}" class="alert-item">
+            <p><i></i><strong th:text="${integration.title}"></strong></i>: <span th:text="${integration.description}"></span></p>
+            <p><strong>Impact:</strong> <span th:text="${integration.impact}"></span></p>
+            <p><strong>Action Required:</strong> <span th:text="${integration.action}"></span></p>
+            <a th:if="${not #strings.isEmpty(integration.ctaUrl) and not #strings.isEmpty(integration.ctaText)}"
+               th:href="@{${integration.ctaUrl}}"
+               class="cta-button"
+               th:text="${integration.ctaText}">CTA</a>
+        </div>
+    </div>
+
+    <div class="alert-section">
+        <h2 class="alert-title">Need Assistance?</h2>
+        <p>Our team is here to help! Contact us at
+            <a th:href="@{'mailto:' + ${email}}" th:text="${email}">support email</a>
+            .</p>
+    </div>
+
+    <div th:if="${not #strings.isEmpty(teamName)}">  <p><strong th:text="${teamName}">"${teamName}"</strong></p>
+    </div>
+
+    <p>Best regards,</p>
+</div>
+</body>
+</html>
