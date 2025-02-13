@@ -13,10 +13,9 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @ToString
-public class BigQueryBaselineDTO {
+public class BaselineDTO {
 
     @JsonProperty(BigQueryConstants.ALERT_ID)
     String alertId;
@@ -24,13 +23,13 @@ public class BigQueryBaselineDTO {
     @JsonProperty(BigQueryConstants.CLIENT_ID)
     String clientId;
 
-    @JsonProperty(BigQueryConstants.METRIC_NAME)
-    String metricName;
+    @JsonProperty(BigQueryConstants.METRIC)
+    String metric;
 
     @JsonProperty(BigQueryConstants.OBJECT_TYPE)
     String objectType;
-    @JsonProperty(BigQueryConstants.OBJECT_ID)
-    String objectId;
+    @JsonProperty(BigQueryConstants.OBJECT_IDENTIFIER)
+    String objectIdentifier;
 
     @JsonProperty(BigQueryConstants.VALUE)
     String value;
@@ -45,9 +44,9 @@ public class BigQueryBaselineDTO {
         Map<String, Object> map = new HashMap<>();
         map.put(BigQueryConstants.ALERT_ID, this.alertId);
         map.put(BigQueryConstants.CLIENT_ID, this.clientId);
-        map.put(BigQueryConstants.METRIC_NAME, this.metricName);
+        map.put(BigQueryConstants.METRIC, this.metric);
         map.put(BigQueryConstants.OBJECT_TYPE, this.objectType);
-        map.put(BigQueryConstants.OBJECT_ID, this.objectId);
+        map.put(BigQueryConstants.OBJECT_IDENTIFIER, this.objectIdentifier);
         map.put(BigQueryConstants.VALUE, this.value);
         map.put(BigQueryConstants.VALUE_DATATYPE, this.valueDataType);
         map.put(BigQueryConstants.CREATED_AT, this.createdAt);

@@ -28,11 +28,12 @@ public class GlobalExceptionHandler {
     Logger logger = LogUtil.getInstance();
 
     @ExceptionHandler(ServiceException.class)
-    public ResponseEntity<Map<String, List<String>>> handleServiceException(MethodArgumentNotValidException ex) {
-        List<String> errors = ex.getBindingResult().getFieldErrors()
-                .stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
-        return new ResponseEntity<>(getErrorsMap(errors), HttpStatus.UNPROCESSABLE_ENTITY);
+    public ResponseEntity<Map<String, String>> handleServiceException(ServiceException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);  // Or other appropriate status
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<String>>> handleValidationErrors(MethodArgumentNotValidException ex) {

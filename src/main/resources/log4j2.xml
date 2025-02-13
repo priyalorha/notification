@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Properties>
-        <Property name="logPath">/Users/adyogi/Priya/springboot_project/notification/log</Property>
+        <Property name="logPath">/home/adyogi/logs/notification/log</Property>
         <Property name="rollingFileName">notification</Property>
         <Property name="LOG_PATTERN">
             %-d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - client_id=%X{client_id} - %m%n

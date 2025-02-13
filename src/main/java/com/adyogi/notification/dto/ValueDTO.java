@@ -1,6 +1,7 @@
 package com.adyogi.notification.dto;
 import com.adyogi.notification.utils.constants.MongoConstants;
 import com.adyogi.notification.utils.constants.RequestDTOConstants;
+import com.adyogi.notification.validators.OnCreate;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -25,6 +26,7 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.VALUE_
         @JsonSubTypes.Type(value = DynamicDayValueDTO.class, name = DATE_DYNAMIC),
         @JsonSubTypes.Type(value = PercentageValueDTO.class, name = PERCENTAGE),
         @JsonSubTypes.Type(value = StaticBooleanValueDTO.class, name = STATIC_BOOLEAN),
+        @JsonSubTypes.Type(value = StaticFloatValueDTO.class, name = STATIC_FLOAT),
 })
 
 
@@ -34,11 +36,10 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.VALUE_
 @Valid
 public class ValueDTO {
     @JsonProperty(TYPE)
-    @NotNull(message = VALUE_REQUIRED)
+    @NotNull(groups = OnCreate.class, message = VALUE_REQUIRED)
     MongoConstants.ValueType type;
 
-    @JsonProperty(COMPARE_WITH_PREVIOUS)
-    @JsonAlias(COMPARE_WITH_PREVIOUS_ALIAS)
+    @JsonProperty(COMPARE_WITH_PREVIOUS_ALIAS)
     private Boolean compareWithPrevious;
     public Boolean getCompareWithPrevious() {
         return compareWithPrevious != null && compareWithPrevious;

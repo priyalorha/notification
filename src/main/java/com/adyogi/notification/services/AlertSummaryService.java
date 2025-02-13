@@ -9,9 +9,12 @@ import com.adyogi.notification.utils.constants.AlertConstants;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.adyogi.notification.utils.constants.AlertConstants.STOPLOSS_DESCRIPTION_TEMPLATE;
 
 @Service
 public class AlertSummaryService {
@@ -22,11 +25,16 @@ public class AlertSummaryService {
         List<ProductsetAlertDTO> productsets = new ArrayList<>();
         List<IntegrationAlertDTO> integrationAlerts = new ArrayList<>();
 
+
+
         for (Incident incident : incidents) {
-            switch (incident.getMetricName().toString()) {
-                case AlertConstants.STOP_LOSS_EXCLUSION_COUNT:
+            switch (incident.getMetric().toString()) {
+
+                case AlertConstants.STOPLOSS_LIMIT_REACHED:
                     stoplossAlerts.add(createStoplossLimitReachedAlert(incident));
                     break;
+
+                case AlertConstants.STOPLOSS_EXCLUSION_DATE:
 
                 case AlertConstants.STOPLOSS_INACTIVITY:
                     stoplossAlerts.add(createStoplossInactivityAlert(incident));
@@ -57,7 +65,7 @@ public class AlertSummaryService {
     }
     private StoplossAlertDTO createStoplossLimitReachedAlert(Incident incident) {
         StoplossAlertDTO alert = new StoplossAlertDTO();
-        alert.setDescription(String.format(incident.getMessage(), incident.getValue()));
+        alert.setDescription(String.format(STOPLOSS_DESCRIPTION_TEMPLATE, incident.getValue()));
         alert.setTitle(AlertConstants.STOPLOSS_LIMIT_REACHED_TITLE);
         alert.setImpact(AlertConstants.STOPLOSS_IMPACT);
         alert.setAction(AlertConstants.STOPLOSS_ACTION);
@@ -68,7 +76,7 @@ public class AlertSummaryService {
 
     private StoplossAlertDTO createStoplossInactivityAlert(Incident incident) {
         StoplossAlertDTO alert = new StoplossAlertDTO();
-        long daysBetween = ChronoUnit.DAYS.between(incident.getCreatedAt(), LocalDateTime.now());
+        long daysBetween = ChronoUnit.DAYS.between(incident.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC));
         alert.setDescription(String.format(AlertConstants.STOPLOSS_INACTIVITY_DESCRIPTION_TEMPLATE, daysBetween));
         alert.setImpact(AlertConstants.STOPLOSS_INACTIVITY_IMPACT);
         alert.setTitle(AlertConstants.STOPLOSS_INACTIVITY_TITLE);
@@ -81,7 +89,7 @@ public class AlertSummaryService {
     private ProductsetAlertDTO createProductsetAlert(Incident incident) {
         ProductsetAlertDTO alert = new ProductsetAlertDTO();
         alert.setAction(AlertConstants.PRODUCTSET_ACTION);
-        alert.setName(incident.getObjectId());
+        alert.setName(incident.getObjectIdentifier());
         alert.setImpact(AlertConstants.PRODUCTSET_IMPACT);
         return alert;
     }

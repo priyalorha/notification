@@ -12,7 +12,7 @@ import javax.validation.Valid;
 @EqualsAndHashCode
 @Valid
 public class TriggerCondition {
-    private TableConstants.METRIC_NAME metricName;
+    private TableConstants.METRIC metricName;
     private TableConstants.Operator operator;
     private String value;
 

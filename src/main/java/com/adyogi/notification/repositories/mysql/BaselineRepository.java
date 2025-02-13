@@ -15,19 +15,19 @@ public interface BaselineRepository extends JpaRepository<Baseline, BaselineId> 
 
     public List<Baseline> findBaselineByClientId(String clientId);
 
-    @Query("SELECT m FROM Baseline m WHERE m.alertId = :alertId AND m.clientId = :clientId AND m.objectType = :objectType AND m.objectId = :objectId")
+    @Query("SELECT m FROM Baseline m WHERE m.alertId = :alertId AND m.clientId = :clientId AND m.objectType = :objectType AND m.objectIdentifier = :objectIdentifier")
     Baseline findBaselineById(
             @Param("alertId") String alertId,
             @Param("clientId") String clientId,
             @Param("objectType") TableConstants.OBJECT_TYPE objectType,
-            @Param("objectId") String objectId
+            @Param("objectIdentifier") String objectIdentifier
     );
 
-    @Query("SELECT m FROM Baseline m WHERE m.clientId = :clientId AND m.metricName = :metricName AND m.objectType = :objectType AND m.objectId = :objectId")
+    @Query("SELECT m FROM Baseline m WHERE m.clientId = :clientId AND m.metric = :metric AND m.objectType = :objectType AND m.objectIdentifier = :objectIdentifier")
     List<Baseline> findBaselineByIdExceptAlertId(
             @Param("clientId") String clientId,
-            @Param("metricName") TableConstants.METRIC_NAME metricName,
+            @Param("metric") TableConstants.METRIC metricName,
             @Param("objectType") TableConstants.OBJECT_TYPE objectType,
-            @Param("objectId") String objectId
+            @Param("objectIdentifier") String objectIdentifier
     );
 }

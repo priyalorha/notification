@@ -2,7 +2,6 @@ package com.adyogi.notification.services;
 
 import com.adyogi.notification.bigquery.bigquerycomponent.BigQueryClient;
 import com.adyogi.notification.database.sql.entities.Metrics;
-import com.adyogi.notification.dto.BigQueryMetricsDTO;
 import com.adyogi.notification.dto.MetricsDTO;
 import com.adyogi.notification.repositories.mysql.MetricsRepository;
 import com.adyogi.notification.utils.logging.LogUtil;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,8 +47,8 @@ public class MetricsService {
         Metrics metrics = modelMapper.map(metricDTO, Metrics.class);
 
         metrics.setClientId(clientId);
-        metrics.setCreatedAt(LocalDateTime.now());
-        metrics.setUpdatedAt(LocalDateTime.now());
+        metrics.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC));
+        metrics.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
 
         return metricsRepository.saveAndFlush(metrics);
     }
@@ -59,18 +59,18 @@ public class MetricsService {
         queryBuilder.append(INSERT_METRICS_SQL_RAW_QUERY);
         for (int i = 0; i < metricsList.size(); i++) {
             Metrics metric = metricsList.get(i);
-            metric.setCreatedAt(LocalDateTime.now());
-            metric.setUpdatedAt(LocalDateTime.now());
+            metric.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC));
+            metric.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
             queryBuilder.append(String.format(
                     "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
                     metric.getClientId(),
-                    metric.getMetricName(),
+                    metric.getMetric(),
                     metric.getValue(),
                     metric.getValueDataType(),
                     metric.getCreatedAt(),
                     metric.getUpdatedAt(),
                     metric.getObjectType(),
-                    metric.getObjectId()
+                    metric.getObjectIdentifier()
             ));
             if (i < metricsList.size() - 1) {
                 queryBuilder.append(", ");
@@ -86,14 +86,14 @@ public class MetricsService {
 
     }
 
-    public void insertMetricToBigQuery(BigQueryMetricsDTO metrics) {
+    public void insertMetricToBigQuery(MetricsDTO metrics) {
         InsertAllRequest.RowToInsert rowToInsert = InsertAllRequest.RowToInsert.of(metrics.toMap());
         bigQueryConfiguration.insertRows(Collections.singletonList(rowToInsert),
                 BIGQUERY_NOTIFICATION_DATASET_NAME,
                 BIGQUERY_METRICS_TABLE_NAME);
     }
 
-    public void insertMetricsToBigQuery(List<BigQueryMetricsDTO> metrics) {
+    public void insertMetricsToBigQuery(List<MetricsDTO> metrics) {
         List<InsertAllRequest.RowToInsert> rowsToInsert = metrics.stream()
                 .map(metric -> InsertAllRequest.RowToInsert.of(metric.toMap()))
                 .collect(Collectors.toList());

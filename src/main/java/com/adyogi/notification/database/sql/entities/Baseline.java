@@ -10,6 +10,7 @@ import javax.persistence.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,34 +27,30 @@ import static com.adyogi.notification.utils.constants.TableConstants.*;
 public class Baseline implements Serializable {
 
     @Id
-    @Column(name = ALERT_ID, nullable = false)
+    @Column(name = ALERT_ID)
     private String alertId;
 
-
     @Id
-    @Column(name = CLIENT_ID, nullable = false)
+    @Column(name = CLIENT_ID)
     private String clientId;
 
     @Id
-    @Column(name = METRIC_NAME_COL_NAME, nullable = false)
+    @Column(name = METRIC_COL_NAME)
     @Enumerated(EnumType.STRING) // Map ENUM as string
-    private TableConstants.METRIC_NAME metricName;
+    private METRIC metric;
 
     @Id
-    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false)
+    @Column(name = OBJECT_TYPE_COL_NAME)
     @Enumerated(EnumType.STRING) // Map ENUM as string
 
     private TableConstants.OBJECT_TYPE objectType;
 
     @Id
-    @Column(name = OBJECT_ID, nullable = false)
-    private String objectId;
+    @Column(name = OBJECT_IDENTIFIER)
+    private String objectIdentifier;
 
     @Column(name = BASE_VALUE)
     private String value;
-
-    @Column(name=BASE_VALUE_DATATYPE)
-    private String valueDataType;
 
     @Column(name = CREATED_AT, nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -65,19 +62,18 @@ public class Baseline implements Serializable {
         Map<String, Object> map = new HashMap<>();
         map.put(BigQueryConstants.ALERT_ID, this.alertId);
         map.put(BigQueryConstants.CLIENT_ID, this.clientId);
-        map.put(BigQueryConstants.METRIC_NAME, this.metricName.toString());
+        map.put(BigQueryConstants.METRIC, this.metric.toString());
         map.put(BigQueryConstants.OBJECT_TYPE, this.objectType.toString());
-        map.put(BigQueryConstants.OBJECT_ID, this.objectId);
+        map.put(BigQueryConstants.OBJECT_IDENTIFIER, this.getObjectIdentifier());
         map.put(BigQueryConstants.VALUE, this.value);
-        map.put(BigQueryConstants.VALUE_DATATYPE, this.valueDataType);
-        map.put(BigQueryConstants.CREATED_AT, this.createdAt);
-        map.put(BigQueryConstants.UPDATED_AT, this.updatedAt);
+        map.put(BigQueryConstants.CREATED_AT, this.createdAt.toString());
+        map.put(BigQueryConstants.UPDATED_AT, this.updatedAt.toString());
         return map;
     }
 
     // this is for reference, we have used this for lookup,
     public String getMetricId(){
-        return this.getClientId() + this.getMetricName() + this.getObjectType() + this.getObjectId();
+        return this.getClientId() + this.getMetric() + this.getObjectType() + this.getObjectIdentifier();
     }
 
     // this is for reference, we have used this for lookup,

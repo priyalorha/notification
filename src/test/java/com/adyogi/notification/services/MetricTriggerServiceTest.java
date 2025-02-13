@@ -62,16 +62,16 @@
 //        // Given
 //        Metrics mockMetrics = new Metrics();
 //        mockMetrics.setClientId("client123");
-//        mockMetrics.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockMetrics.setObjectId("client123");
+//        mockMetrics.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockMetrics.setObjectIdentifier("client123");
 //        mockMetrics.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //        mockMetrics.setValue("100");
 //
 //        Baseline mockBaseline = new Baseline();
 //        mockBaseline.setAlertId("alert1");
 //        mockBaseline.setClientId("client123");
-//        mockBaseline.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockBaseline.setObjectId("client123");
+//        mockBaseline.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockBaseline.setObjectIdentifier("client123");
 //        mockBaseline.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        Incident mockIncident = new Incident();
@@ -79,15 +79,15 @@
 //
 //        mockIncident.setAlertId("alert1");
 //        mockIncident.setClientId("client123");
-//        mockIncident.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockIncident.setObjectId("client123");
+//        mockIncident.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockIncident.setObjectIdentifier("client123");
 //        mockIncident.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        ClientNotificationConfiguration mockNotificationConfig = new ClientNotificationConfiguration();
-//        mockNotificationConfig.setObjectId("client123");
+//        mockNotificationConfig.setObjectIdentifier("client123");
 //        mockNotificationConfig.setClientId("client123");
 //
-//        when(baselineRepository.findBaselineByIdExceptAlertId(anyString(), any(TableConstants.METRIC_NAME.class),
+//        when(baselineRepository.findBaselineByIdExceptAlertId(anyString(), any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class), anyString()))
 //                .thenReturn(Collections.singletonList(mockBaseline));
 //
@@ -97,7 +97,7 @@
 //        // Then
 //        assertNotNull(result);
 //        assertEquals(1, result.size());
-//        verify(baselineRepository, times(1)).findBaselineByIdExceptAlertId(anyString(), any(TableConstants.METRIC_NAME.class),
+//        verify(baselineRepository, times(1)).findBaselineByIdExceptAlertId(anyString(), any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class), anyString());
 //    }
 //
@@ -120,16 +120,16 @@
 //        // Given
 //        Metrics mockMetrics = new Metrics();
 //        mockMetrics.setClientId("client123");
-//        mockMetrics.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockMetrics.setObjectId("client123");
+//        mockMetrics.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockMetrics.setObjectIdentifier("client123");
 //        mockMetrics.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //        mockMetrics.setValue("80");
 //
 //        Baseline mockBaseline = new Baseline();
 //        mockBaseline.setAlertId("alert1");
 //        mockBaseline.setClientId("client123");
-//        mockBaseline.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockBaseline.setObjectId("client123");
+//        mockBaseline.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockBaseline.setObjectIdentifier("client123");
 //        mockBaseline.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        Incident mockIncident = new Incident();
@@ -137,16 +137,16 @@
 //
 //        mockIncident.setAlertId("alert1");
 //        mockIncident.setClientId("client123");
-//        mockIncident.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockIncident.setObjectId("client123");
+//        mockIncident.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockIncident.setObjectIdentifier("client123");
 //        mockIncident.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        ClientNotificationConfiguration mockNotificationConfig = new ClientNotificationConfiguration();
-//        mockNotificationConfig.setObjectId("client123");
+//        mockNotificationConfig.setObjectIdentifier("client123");
 //        mockNotificationConfig.setClientId("client123");
 //        TriggerCondition triggerConditions = new TriggerCondition();
 //
-//        triggerConditions.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
+//        triggerConditions.setMetricName(TableConstants.METRIC.MATCH_RATE);
 //        triggerConditions.setOperator(TableConstants.Operator.LESS_THAN_EQUAL_TO);
 //
 //        PercentageValue percentageValue = new PercentageValue();
@@ -164,7 +164,7 @@
 //
 //        when(baselineRepository.findBaselineByIdExceptAlertId(
 //                anyString(),
-//                any(TableConstants.METRIC_NAME.class),
+//                any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class),
 //                anyString()))
 //                .thenReturn(Collections.singletonList(mockBaseline));
@@ -175,9 +175,9 @@
 //
 //
 //
-//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdAndIncidentStatus(
+//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdentifierAndIncidentStatus(
 //                mockBaseline.getAlertId(), mockBaseline.getClientId(), mockBaseline.getMetricName(),
-//                mockBaseline.getObjectType(), mockBaseline.getObjectId()))
+//                mockBaseline.getObjectType(), mockBaseline.getObjectIdentifier()))
 //                .thenReturn(Optional.empty());
 //
 //
@@ -197,16 +197,16 @@
 //        // Given
 //        Metrics mockMetrics = new Metrics();
 //        mockMetrics.setClientId("client123");
-//        mockMetrics.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockMetrics.setObjectId("client123");
+//        mockMetrics.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockMetrics.setObjectIdentifier("client123");
 //        mockMetrics.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //        mockMetrics.setValue("90");
 //
 //        Baseline mockBaseline = new Baseline();
 //        mockBaseline.setAlertId("alert1");
 //        mockBaseline.setClientId("client123");
-//        mockBaseline.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockBaseline.setObjectId("client123");
+//        mockBaseline.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockBaseline.setObjectIdentifier("client123");
 //        mockBaseline.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        Incident mockIncident = new Incident();
@@ -214,17 +214,17 @@
 //
 //        mockIncident.setAlertId("alert1");
 //        mockIncident.setClientId("client123");
-//        mockIncident.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockIncident.setObjectId("client123");
+//        mockIncident.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockIncident.setObjectIdentifier("client123");
 //        mockIncident.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //
 //        ClientNotificationConfiguration mockNotificationConfig = new ClientNotificationConfiguration();
-//        mockNotificationConfig.setObjectId("client123");
+//        mockNotificationConfig.setObjectIdentifier("client123");
 //        mockNotificationConfig.setClientId("client123");
 //        TriggerCondition triggerConditions = new TriggerCondition();
 //
-//        triggerConditions.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
+//        triggerConditions.setMetricName(TableConstants.METRIC.MATCH_RATE);
 //        triggerConditions.setOperator(TableConstants.Operator.LESS_THAN_EQUAL_TO);
 //
 //        PercentageValue percentageValue = new PercentageValue();
@@ -243,15 +243,15 @@
 //
 //
 //        when(baselineRepository.findBaselineByIdExceptAlertId(anyString(),
-//                any(TableConstants.METRIC_NAME.class),
+//                any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class), anyString()))
 //                .thenReturn(Collections.singletonList(mockBaseline));
 //
 //        when(clientNotificationConfigurationRepository.findActiveAlertsByClientId(anyString()))
 //                .thenReturn(Collections.singletonList(mockNotificationConfig));
 //
-//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectId(anyString(), anyString(),
-//                any(TableConstants.METRIC_NAME.class),
+//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdentifier(anyString(), anyString(),
+//                any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class), anyString()))
 //                .thenReturn(Optional.of(mockIncident));
 //
@@ -272,16 +272,16 @@
 //        // Given
 //        Metrics mockMetrics = new Metrics();
 //        mockMetrics.setClientId("client123");
-//        mockMetrics.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockMetrics.setObjectId("client123");
+//        mockMetrics.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockMetrics.setObjectIdentifier("client123");
 //        mockMetrics.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //        mockMetrics.setValue("75");
 //
 //        Baseline mockBaseline = new Baseline();
 //        mockBaseline.setAlertId("alert1");
 //        mockBaseline.setClientId("client123");
-//        mockBaseline.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockBaseline.setObjectId("client123");
+//        mockBaseline.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockBaseline.setObjectIdentifier("client123");
 //        mockBaseline.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        Incident mockIncident = new Incident();
@@ -289,16 +289,16 @@
 //
 //        mockIncident.setAlertId("alert1");
 //        mockIncident.setClientId("client123");
-//        mockIncident.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
-//        mockIncident.setObjectId("client123");
+//        mockIncident.setMetricName(TableConstants.METRIC.MATCH_RATE);
+//        mockIncident.setObjectIdentifier("client123");
 //        mockIncident.setObjectType(TableConstants.OBJECT_TYPE.CLIENT_ID);
 //
 //        ClientNotificationConfiguration mockNotificationConfig = new ClientNotificationConfiguration();
-//        mockNotificationConfig.setObjectId("client123");
+//        mockNotificationConfig.setObjectIdentifier("client123");
 //        mockNotificationConfig.setClientId("client123");
 //        TriggerCondition triggerConditions = new TriggerCondition();
 //
-//        triggerConditions.setMetricName(TableConstants.METRIC_NAME.MATCH_RATE);
+//        triggerConditions.setMetricName(TableConstants.METRIC.MATCH_RATE);
 //        triggerConditions.setOperator(TableConstants.Operator.LESS_THAN_EQUAL_TO);
 //
 //        PercentageValue percentageValue = new PercentageValue();
@@ -316,7 +316,7 @@
 //
 //        when(baselineRepository.findBaselineByIdExceptAlertId(
 //                anyString(),
-//                any(TableConstants.METRIC_NAME.class),
+//                any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class),
 //                anyString()))
 //                .thenReturn(Collections.singletonList(mockBaseline));
@@ -325,9 +325,9 @@
 //        when(clientNotificationConfigurationRepository.findActiveAlertsByClientId(anyString()))
 //                .thenReturn(Collections.singletonList(mockNotificationConfig));
 //
-//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdAndIncidentStatus(
+//        when(incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdentifierAndIncidentStatus(
 //                anyString(), anyString(),
-//                any(TableConstants.METRIC_NAME.class),
+//                any(TableConstants.METRIC.class),
 //                any(TableConstants.OBJECT_TYPE.class), anyString()))
 //                .thenReturn(Optional.of(mockIncident));
 //

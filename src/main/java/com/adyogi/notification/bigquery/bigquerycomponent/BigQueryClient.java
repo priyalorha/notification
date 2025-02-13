@@ -1,6 +1,7 @@
 package com.adyogi.notification.bigquery.bigquerycomponent;
 
 import com.adyogi.notification.utils.logging.LogUtil;
+import com.adyogi.notification.utils.rollbar.RollbarManager;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.bigquery.*;
 
@@ -40,7 +41,7 @@ public class BigQueryClient {
             bigQuery = BigQueryOptions.newBuilder().setCredentials(
                     ServiceAccountCredentials.fromStream(inputStream)).build().getService();
         } catch (IOException e) {
-//            RollbarManager.sendExceptionOnCriticalRollBar("Error in post construct of BQ object ", e);
+            RollbarManager.sendExceptionOnCriticalRollBar("Error in post construct of BQ object ", e);
         }
     }
 

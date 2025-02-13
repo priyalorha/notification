@@ -5,9 +5,10 @@ import javax.validation.constraints.Pattern;
 public interface ValidationConstants {
 
     String MISSING_CLIENT_ID = "client_id is required";
-    String MISSING_METRICS_NAME = "metric_name is required";
+    String MISSING_METRICS_NAME = "metric is required";
+
     String MISSING_OBJECT_TYPE = "object_type is required";
-    String MISSING_OBJECT_ID = "object_id is required";
+    String MISSING_OBJECT_IDENTIFIER = "object_identifier is required";
     String MISSING_VALUE = "value is required";
     String MISSING_VALUE_DATA_TYPE = "value_datatype is required";
     String MISSING_STATUS = "status is required";
@@ -25,7 +26,6 @@ public interface ValidationConstants {
 
     String TO_EMAIL_LIST_ERROR = "toEmail must be a list";
 
-
     String MUST_BE_LIST = "Field must be a list";
 
     // Constraints
@@ -36,4 +36,12 @@ public interface ValidationConstants {
     String TRIGGER_CONDITION_PERCENTATE_REQUIRED = "trigger_conditions.value.percentage is required";
     String TRIGGER_CONDITION_VALUE_REQUIRED = "trigger_conditions.value.value is required and cannot be blank.";
     String VALUE_REQUIRED = "value.type is required";
+
+    String FLOAT_DATA_TYPE = "FLOAT";
+    String BOOLEAN_DATA_TYPE = "BOOLEAN";
+    String INTEGER_DATA_TYPE = "INTEGER";
+    String DATE_DATA_TYPE = "DATE";
+
+    String TRUE_VALUE = "true";
+    String FALSE_VALUE = "false";
 }

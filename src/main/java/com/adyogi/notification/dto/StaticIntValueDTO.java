@@ -1,6 +1,7 @@
 package com.adyogi.notification.dto;
 
 import com.adyogi.notification.utils.constants.MongoConstants;
+import com.adyogi.notification.validators.OnCreate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -17,7 +18,7 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.TRIGGE
 @Valid
 public class StaticIntValueDTO extends ValueDTO {
     @JsonProperty(VALUE_COL_NAME)
-    @NotNull(message = TRIGGER_CONDITION_VALUE_REQUIRED)
+    @NotNull(groups = OnCreate.class,message = TRIGGER_CONDITION_VALUE_REQUIRED)
     int value;
     @Override // This annotation is optional here but clarifies intent
     public MongoConstants.ValueType getType() {

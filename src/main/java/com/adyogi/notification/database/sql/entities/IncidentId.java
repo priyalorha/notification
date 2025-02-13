@@ -17,16 +17,29 @@ import static com.adyogi.notification.utils.constants.TableConstants.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
+
 public class IncidentId implements Serializable {
 
-    @Column(name = ALERT_ID)
+    @Column(name = ALERT_ID, nullable = false, length = 50)
     private String alertId;
-    @Column(name = CLIENT_ID)
+
+
+    @Column(name = CLIENT_ID, nullable = false, length = 50)
     private String clientId;
-    @Enumerated(EnumType.STRING)
-    @Column(name = OBJECT_TYPE_COL_NAME)
+
+
+    @Column(name = METRIC_COL_NAME, nullable = false, length = 50)
+    @Enumerated(EnumType.STRING) // Map ENUM as string
+    private METRIC metric;
+
+
+    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false, length = 50)
+    @Enumerated(EnumType.STRING) // Map ENUM as string
+
     private TableConstants.OBJECT_TYPE objectType;
-    private String objectId;
+
+    @Column(name = OBJECT_IDENTIFIER, nullable = false, length = 100)
+    private String objectIdentifier; // Composite key
 
     @Override
     public boolean equals(Object o) {
@@ -36,11 +49,11 @@ public class IncidentId implements Serializable {
         return  Objects.equals(alertId, that.alertId) &&
                 Objects.equals(clientId, that.clientId) &&
                 objectType == that.objectType &&
-                Objects.equals(objectId, that.objectId);
+                Objects.equals(objectIdentifier, that.objectIdentifier);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alertId, clientId, objectType, objectId);
+        return Objects.hash(alertId, clientId, objectType, objectIdentifier);
     }
 }

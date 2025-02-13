@@ -3,19 +3,21 @@ package com.adyogi.notification.services;
 import com.adyogi.notification.database.mongo.entities.AlertChannel;
 import com.adyogi.notification.database.sql.entities.Incident;
 import com.adyogi.notification.repositories.back4app.AlertChannelRepository;
-import com.adyogi.notification.repositories.back4app.ClientAlertRepository;
-import com.adyogi.notification.repositories.back4app.DefaultAlertRepository;
+import com.adyogi.notification.repositories.back4app.AlertRepository;
 import com.adyogi.notification.repositories.mysql.IncidentRepository;
 import com.adyogi.notification.utils.logging.LogUtil;
+import net.sf.ehcache.CacheManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import com.adyogi.notification.dto.emails.EmailAlertSummaryDTO;
 import com.adyogi.notification.utils.constants.TableConstants;
 import org.thymeleaf.context.Context;
 
+import java.time.ZoneOffset;
 import java.util.*;
 
 
@@ -23,6 +25,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static com.adyogi.notification.utils.constants.AlertConstants.*;
+import static com.adyogi.notification.utils.constants.ConfigConstants.*;
 
 @Service
 public class IncidentToEmailService{
@@ -31,17 +34,17 @@ public class IncidentToEmailService{
     @Autowired
     IncidentRepository incidentRepository;
     @Autowired
-    ClientIdListingService clientIdListingService;
-    @Autowired
     AlertChannelRepository alertChannelRepository;
     @Autowired
-    ClientAlertRepository clientAlertRepository;
-    @Autowired
-    DefaultAlertRepository defaultAlertRepository;
+    AlertRepository alertRepository;
     @Autowired
     ModelMapper modelMapper;
     @Autowired
     PubSubPublisher pubSubPublisher;
+
+
+    @Autowired
+    CacheManager cacheManager;
 
     @Autowired
     TemplateEngine templateEngine;
@@ -89,19 +92,6 @@ public class IncidentToEmailService{
         pubSubPublisher.publishToPubSub(EMAIL_TOPIC, emailBody);
     }
 
-    //TODO: this needs to be removed....
-    public void createEmailAndEnqueue(List<Incident> incidents) {
-
-        Map<String, Object> emailBody = new HashMap<>();
-
-        emailBody.put(FROM_EMAIL, "tech@adyogi.com");
-        emailBody.put(RECEIPENTS, new ArrayList<>(Collections.singletonList("priya.lorha@adyogi.com")));
-        emailBody.put(SUBJECT, EMAIL_SUBJECT);
-        emailBody.put(BODY, constructEmailBody(incidents));
-
-        pubSubPublisher.publishToPubSub(EMAIL_TOPIC, emailBody);
-    }
-
     private boolean isEligibleForEmail(Incident incident) {
         List <TableConstants.ALERT_CHANNEL> alertChannel = incident.getAlertChannel(); // Normalize to lowercase once
         boolean isEmailChannel = alertChannel.contains(ALERT_CHANNEL_EMAIL) || alertChannel.contains(ALERT_CHANNEL_ALL);
@@ -111,83 +101,58 @@ public class IncidentToEmailService{
         }
 
         LocalDateTime notificationTime = incident.getNotificationSentAt();
-        long minutesSinceNotification = Duration.between(notificationTime, LocalDateTime.now()).toMinutes();
+        long minutesSinceNotification = Duration.between(notificationTime, LocalDateTime.now(ZoneOffset.UTC)).toMinutes();
         return minutesSinceNotification >= incident.getAlertResendIntervalMin() && isEmailChannel; // Check time and channel
     }
 
+    @Async(SEND_EMAIL_SINGLE_CLIENT)
     public void sendEmail(String clientId) {
         List<Incident> incidents = incidentRepository.findOpenEnabledIncidents(clientId,
                 TableConstants.INCIDENT_STATUS.OPEN,
-                TableConstants.STATUS.ENABLED);
+                TableConstants.ALERT_STATUS.ENABLED);
 
+        if (incidents.isEmpty()) {
+            logger.info("No open enabled incidents found for clientId: {}", clientId);
+            return;
+        }
+        // Fetch communication channel only once
+        Map<String, AlertChannel> clientCommunicationChannelMap = fetchClientCommunicationChannel(clientId);
 
         List<Incident> incidentToBeEmailed = new ArrayList<>();
 
         for (Incident incident : incidents) {
             if (isEligibleForEmail(incident)) {
                 incidentToBeEmailed.add(incident);
-                incident.setNotificationSentAt(LocalDateTime.now());
+                incident.setNotificationSentAt(LocalDateTime.now(ZoneOffset.UTC));
             } else {
                 logger.info("Incident with alertId: {} has already been sent a " +
                                 "notification within the last {} minutes",
                         incident.getAlertId(),
                         incident.getAlertResendIntervalMin());
             }
-            if (!incidentToBeEmailed.isEmpty()) {
-                Map<String, AlertChannel> clientCommunicationChannelMap = fetchClientCommunicationChannel(clientId);
+        }
 
-                if (clientCommunicationChannelMap.get(ALERT_CHANNEL_EMAIL) != null) {
-                    createEmailAndEnqueue(clientCommunicationChannelMap.get(ALERT_CHANNEL_EMAIL), incidentToBeEmailed);
-                } else {
+        // Process email notifications only once
+        if (!incidentToBeEmailed.isEmpty()) {
+            AlertChannel emailChannel = clientCommunicationChannelMap.get(ALERT_CHANNEL_EMAIL);
 
-                    // TODO : this needs to be removed...
-                    createEmailAndEnqueue(incidentToBeEmailed);
-                    logger.info("No email configuration found for clientId: {}", clientId);
-                }
-
-                incidentRepository.saveAll(incidentToBeEmailed);
+            if (emailChannel != null) {
+                createEmailAndEnqueue(emailChannel, incidentToBeEmailed);
+            } else {
+                logger.info("No email configuration found for clientId: {}", clientId);
             }
+
+            // Batch save instead of multiple writes inside the loop
+            incidentRepository.saveAll(incidentToBeEmailed);
         }
     }
 
+    @Async(ALL_CLIENT_EMAIL)
     public void sendEmailsForAllClient() {
-
-
-//         = incidentRepository.findClientIdsWithOpenIncidents();
-
-        List<String> clientIds = incidentRepository.findClientIdsWithOpenIncidents(TableConstants.INCIDENT_STATUS.OPEN, TableConstants.STATUS.ENABLED);
-
+        List<String> clientIds = incidentRepository.findClientIdsWithOpenIncidents(TableConstants.INCIDENT_STATUS.OPEN,
+                TableConstants.ALERT_STATUS.ENABLED);
         for (String clientId : clientIds) {
-            List<Incident> incidents = incidentRepository.findOpenEnabledIncidents(clientId,
-                    TableConstants.INCIDENT_STATUS.OPEN,
-                    TableConstants.STATUS.ENABLED);
-            List<Incident> incidentToBeEmailed = new ArrayList<>();
-
-            for (Incident incident : incidents) {
-                if (isEligibleForEmail(incident)) {
-                    incidentToBeEmailed.add(incident);
-                    incident.setNotificationSentAt(LocalDateTime.now());
-                }
-                else {
-                    logger.info("Incident with alertId: {} has already been sent a notification within the last {} minutes",
-                            incident.getAlertId(),
-                            incident.getAlertResendIntervalMin());
-                }
-            }
-            if (!incidentToBeEmailed.isEmpty()) {
-                Map<String, AlertChannel> clientCommunicationChannelMap = fetchClientCommunicationChannel(clientId);
-
-                if (clientCommunicationChannelMap.get(ALERT_CHANNEL_EMAIL) != null) {
-                    createEmailAndEnqueue(clientCommunicationChannelMap.get(ALERT_CHANNEL_EMAIL ), incidentToBeEmailed);
-                } else {
-
-                    // TODO : this needs to be removed...
-                    createEmailAndEnqueue(incidentToBeEmailed);
-                    logger.info("No email configuration found for clientId: {}", clientId);
-                }
-
-                incidentRepository.saveAll(incidentToBeEmailed);
-            }
+            pubSubPublisher.publishToPubSub(GENERATE_EMAIL_SUB_TOPIC, clientId);
         }
     }
 }

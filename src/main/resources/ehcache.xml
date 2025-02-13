@@ -1,0 +1,53 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd">
+
+    <diskStore path="java.io.tmpdir"/>
+
+    <cache name="clientCache"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           timeToLiveSeconds="21600"
+           timeToIdleSeconds="6000"
+           memoryStoreEvictionPolicy="LRU"/>
+
+    <cache name="validateClientId"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           timeToLiveSeconds="21600"
+           timeToIdleSeconds="6000"
+           memoryStoreEvictionPolicy="LRU"/>
+
+
+    <cache name="alerts"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           timeToLiveSeconds="21600"
+           timeToIdleSeconds="6000"
+           memoryStoreEvictionPolicy="LRU"/>
+
+
+    <cache name="allAlerts"
+           maxEntriesLocalHeap="10000"
+           eternal="false"
+           timeToLiveSeconds="21600"
+           timeToIdleSeconds="6000"
+           memoryStoreEvictionPolicy="LRU"/>
+
+
+    <cache name="notificationConfigMap"
+           maxEntriesLocalHeap="10000"
+           eternal="false"
+           timeToLiveSeconds="21600"
+           timeToIdleSeconds="6000"
+           memoryStoreEvictionPolicy="LRU"/>
+
+
+    <cache name="emailCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToLiveSeconds="300"
+           memoryStoreEvictionPolicy="LRU"/>
+
+
+
+</ehcache>

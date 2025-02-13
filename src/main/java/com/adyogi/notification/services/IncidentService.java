@@ -9,25 +9,29 @@ import com.adyogi.notification.exceptions.ServiceException;
 import com.adyogi.notification.repositories.mysql.BaselineRepository;
 import com.adyogi.notification.repositories.mysql.IncidentRepository;
 import com.adyogi.notification.repositories.mysql.MetricsRepository;
+import com.adyogi.notification.utils.FailureHandler;
 import com.adyogi.notification.utils.constants.TableConstants;
 import com.adyogi.notification.utils.logging.LogUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.bigquery.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.adyogi.notification.utils.constants.AlertConstants.INCIDENT_COMPUTE_TOPIC;
 import static com.adyogi.notification.utils.constants.BigQueryConstants.INCIDENT_QUERY;
+import static com.adyogi.notification.utils.constants.ConfigConstants.*;
 import static com.adyogi.notification.utils.constants.ErrorConstants.*;
 import static com.adyogi.notification.utils.constants.RequestDTOConstants.*;
 import static com.adyogi.notification.utils.constants.TableConstants.BIGQUERY_INCIDENTS_TABLE_NAME;
@@ -51,6 +55,8 @@ public class IncidentService {
     @Autowired
     IncidentHandlingService incidentHandlingService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -61,14 +67,14 @@ public class IncidentService {
     @Autowired
     private IncidentToEmailService incidentToEmailService;
 
-    @Cacheable("validateClientId")
-    private void validateClientId(String clientId) {
-        if (!clientValidationService.isClientIdValid(clientId)) {
-            String errorMessage = String.format(INVALID_CLIENT_ID, clientId);
-            logger.error(errorMessage);
-            throw new NotFoundException(errorMessage);
-        }
-    }
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
+    @Autowired
+    PubSubPublisher pubSubPublisher;
+
+    @Autowired
+    FailureHandler failureHandler;
 
     private String getStringValue(FieldValueList row, String fieldName) { // Correct parameter type is Row
         if (row == null) {
@@ -78,16 +84,19 @@ public class IncidentService {
         FieldValue fieldValue = row.get(fieldName);
 
         if (fieldValue != null && !fieldValue.isNull()) { // Correct null and isNull check
-            return fieldValue.getStringValue();
+            return fieldValue.getStringValue().toUpperCase(Locale.ROOT);
         } else {
-            return null; // Return null if fieldValue is null or isNull
+            return "0"; // Return null if fieldValue is null or isNull
         }
     }
 
-    private List<IncidentDTO> fetchResolvedIncidents(String clientId, int LIMIT, int offset) {
-        validateClientId(clientId);
+    private List<IncidentDTO> fetchResolvedIncidents(String clientId, int page, int limit) {
+
+
+        clientValidationService.validateClientId(clientId);
         List<IncidentDTO> incidents = new ArrayList<>();
-        String query = String.format(INCIDENT_QUERY, clientId) + " LIMIT " + LIMIT + " OFFSET " + offset;
+
+        String query = String.format(INCIDENT_QUERY, clientId) + " LIMIT " + limit + " OFFSET " + (page-1) * limit;
 
         QueryJobConfiguration queryConfig = QueryJobConfiguration.newBuilder(query).build();
 
@@ -98,10 +107,10 @@ public class IncidentService {
 
                 dto.setAlertId(getStringValue(row, ALERT_ID));
                 dto.setClientId(getStringValue(row, CLIENT_ID));
-                dto.setMetricName(getStringValue(row, METRIC_NAME));
-                dto.setMetricName(getStringValue(row, OBJECT_TYPE));
-                dto.setObjectId(getStringValue(row, OBJECT_ID));
-                dto.setIncidentId(UUID.randomUUID().getMostSignificantBits());
+                dto.setMetric(getStringValue(row, METRIC));
+                dto.setMetric(getStringValue(row, OBJECT_TYPE));
+                dto.setObjectIdentifier(getStringValue(row, OBJECT_IDENTIFIER));
+                dto.setIncidentId(Long.parseLong(getStringValue(row, INCIDENT_ID)));
                 dto.setStatus(getStringValue(row, STATUS));
                 dto.setMessage(getStringValue(row, MESSAGE));
                 dto.setNotificationStatus(getStringValue(row, NOTIFICATION_STATUS));
@@ -113,7 +122,7 @@ public class IncidentService {
                 dto.setUpdatedAt(getStringValue(row, UPDATED_AT));
                 dto.setAlertResendIntervalMin(getStringValue(row, ALERT_RESEND_INTERVAL_MIN));
                 dto.setAlertChannel(getStringValue(row, ALERT_CHANNEL_FIELD_NAME));
-                dto.setNotificationSentAT(getStringValue(row, NOTIFICATION_SENT_AT));
+                dto.setNotificationSentAt(getStringValue(row, NOTIFICATION_SENT_AT));
                 incidents.add(dto);
             }
         } catch (Exception e) {
@@ -125,29 +134,29 @@ public class IncidentService {
     }
 
     public IncidentDTO getIncidentById(String clientId, String idString) {
-        validateClientId(clientId);
+        clientValidationService.validateClientId(clientId);
         try {
             long id = Long.parseLong(idString); // Handle NumberFormatException elsewhere (see below)
 
             Optional<Incident> optionalIncident = incidentRepository.findByIncidentIdAndClientId(id, clientId);
 
             return optionalIncident.map(incident -> modelMapper.map(incident, IncidentDTO.class))
-                    .orElseThrow(() -> new NotFoundException(INCIDENT_NOT_FOUND)); // Handle not found
-
-        } catch (NumberFormatException e) {  // Handle NumberFormatException
+                    .orElseThrow(() -> new NotFoundException(INCIDENT_NOT_FOUND));
+        }
+         catch (NumberFormatException e) {  // Handle NumberFormatException
             logger.error(String.format(ERROR_FETCHING_INCIDENT, clientId, idString), e);
-            throw new RuntimeException(String.format(ERROR_FETCHING_INCIDENT, clientId, idString), e); // Custom exception
-        } catch (Exception e) { // Catch other exceptions
+            throw new ServiceException(String.format(ERROR_FETCHING_INCIDENT, clientId, idString), e); // Custom exception
+        }
+        catch (Exception e) { // Catch other exceptions
             logger.error(String.format(ERROR_FETCHING_INCIDENT, clientId, idString), e);
-            throw new ServiceException(String.format(ERROR_FETCHING_INCIDENT, clientId, idString), e);
+            throw e;
         }
     }
 
     public List<IncidentDTO> getIncidentsByClientId(String clientId, int page, int offset) {
-        validateClientId(clientId);
+        clientValidationService.validateClientId(clientId);
         List<IncidentDTO> openIncidents = getOpenIncident(clientId, page, offset);
-        List<IncidentDTO> resolvedIncidents = fetchResolvedIncidents(clientId , page, offset);
-        openIncidents.addAll(resolvedIncidents);
+//        List<IncidentDTO> resolvedIncidents = fetchResolvedIncidents(clientId , page, offset);
         return openIncidents;
     }
 
@@ -158,7 +167,7 @@ public class IncidentService {
                 .collect(Collectors.toList());
     }
 
-    public void insertMetricToBigQuery(Map<String, Object> incident) {
+    public void insertIncidentToBigQuery(Map<String, Object> incident) {
         try {
             InsertAllRequest.RowToInsert rowToInsert = InsertAllRequest.RowToInsert.of(incident);
             bigQueryConfiguration.insertRows(
@@ -172,51 +181,26 @@ public class IncidentService {
         }
     }
 
-    public void pauseIncidentAlerts(String clientId, String id) {
-        validateClientId(clientId);
-        try {
-            Incident incident = incidentRepository.findByIncidentIdAndClientId(Long.valueOf(id), clientId)
-                    .orElseThrow(() -> new NotFoundException(INCIDENT_NOT_FOUND));
+    public void verifyClientAndObjectIdsUnchanged(String clientId, String incidentId, IncidentDTO dto){
+        if (dto.getClientId() != null && !clientId.equals(dto.getClientId())) {
+            throw new ServiceException(String.format(CANNOT_UPDATE_CLIENT_ID,
+                    clientId, dto.getClientId()));
+        }
 
-            incident.setStatus(TableConstants.STATUS.DISABLED);
-            incidentRepository.save(incident);
-        }catch (NumberFormatException e) {  // Handle NumberFormatException
-            logger.error(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e);
-            throw new RuntimeException(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e); // Custom exception
+        if (dto.getIncidentId() != null && !incidentId.equals(dto.getIncidentId()) ) {
+            throw new ServiceException(String.format(CANNOT_UPDATE_ALERT_ID,
+                    incidentId, dto.getObjectIdentifier()));
         }
-        catch (Exception e) {
-            logger.error(String.format(ERROR_PAUSING_ALERTS, clientId, id), e);
-            throw new ServiceException(String.format(ERROR_PAUSING_ALERTS, clientId, id), e);
-        }
+
     }
 
-    public void enableIncidentAlert(String clientId, String id) {
-        validateClientId(clientId);
-        TypeMap<Incident, IncidentDTO> typeMap = modelMapper.createTypeMap(Incident.class, IncidentDTO.class);
-        try {
-            Incident incident = incidentRepository.findByIncidentIdAndClientId(Long.valueOf(id), clientId)
-                    .orElseThrow(() -> new NotFoundException(INCIDENT_NOT_FOUND));
 
-
-            if (incident.getStatus() != null && incident.getStatus().equals(TableConstants.STATUS.ENABLED)) {
-                incident.setStatus(TableConstants.STATUS.ENABLED);
-                incidentRepository.save(incident);
-            }
-        } catch (NumberFormatException e) {  // Handle NumberFormatException
-            logger.error(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e);
-            throw new RuntimeException(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e); // Custom exception
-        }catch (Exception e) {
-            logger.error(String.format(ERROR_ENABLING_ALERTS, clientId, id), e);
-            throw new ServiceException(String.format(ERROR_ENABLING_ALERTS, clientId, id), e);
-        }
-    }
-
-    public void insertBaselineToDB(Incident incident) {
+    public void updateBaseline(Incident incident) {
         try {
             Baseline baseline = baselineRepository.findBaselineById(incident.getAlertId(),
                     incident.getClientId(),
                     incident.getObjectType(),
-                    incident.getObjectId());
+                    incident.getObjectIdentifier());
 
             if (baseline != null) {
                 baseline.setValue(incident.getValue());
@@ -232,63 +216,109 @@ public class IncidentService {
         }
     }
 
-    public void resolveIncident(String clientId, String id) {
-        validateClientId(clientId);
+    public IncidentDTO patchIncident(String clientId, String id, IncidentDTO incidentDTO){
+        clientValidationService.validateClientId(clientId);
         try {
-            Incident incident = incidentRepository.findByIncidentIdAndClientId(Long.valueOf(id), clientId)
-                    .orElseThrow(() -> new NotFoundException(INCIDENT_NOT_FOUND));
+            Long incidentId = Long.valueOf(id);
+            verifyClientAndObjectIdsUnchanged(clientId, id, incidentDTO);
 
-            incident.setIncidentStatus(TableConstants.INCIDENT_STATUS.RESOLVED);
-            incidentRepository.save(incident);
+            Incident incident = incidentRepository.findByIncidentIdAndClientId(incidentId, clientId)
+                    .orElseThrow(() ->  new NotFoundException(String.format(INCIDENT_NOT_FOUND, clientId, id)));
 
-            insertMetricToBigQuery(incident.toMap());
-            insertBaselineToDB(incident);
-        }catch (NumberFormatException e) {  // Handle NumberFormatException
-            logger.error(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e);
-            throw new RuntimeException(String.format(ERROR_FETCHING_INCIDENT, clientId, id), e); // Custom exception
+            if (incidentDTO.getStatus() != null) {
+                incident.setStatus(TableConstants.ALERT_STATUS.valueOf(incidentDTO.getStatus()));
+            }
+
+            if (incidentDTO.getIncidentStatus()!= null) {
+                if(incident.getIncidentStatus().equals(TableConstants.INCIDENT_STATUS.RESOLVED))
+                {
+                    throw new ServiceException(String.format(INCIDENT_ALREADY_RESOLVED, clientId , id));
+                }
+                incident.setIncidentStatus(TableConstants.INCIDENT_STATUS.valueOf(incidentDTO.getIncidentStatus()));
+
+                if (incidentDTO.getIncidentStatus().equals(TableConstants.INCIDENT_STATUS.RESOLVED.toString())) {
+                    insertIncidentToBigQuery(incident.toMap());
+                    updateBaseline(incident);
+                }
+            }
+
+            incident.setUpdatedAt(LocalDateTime.from(Instant.now()));
+
+            return modelMapper.map( incidentRepository.save(incident), IncidentDTO.class);
+
+        } catch (NumberFormatException e) {  // Handle NumberFormatException
+            logger.error(String.format(INVALID_INCIDENT_ID, id, clientId), e);
+            throw new ServiceException(String.format(INVALID_INCIDENT_ID, id, clientId), e); // Custom exception
+        }catch(NotFoundException e) {
+            logger.error(String.format(INCIDENT_NOT_FOUND, clientId, id), e);
+            throw e;
         }
         catch (Exception e) {
-            logger.error(String.format(INCIDENT_RESOLVE_FAILED, clientId, id), e);
-            throw new ServiceException(String.format(INCIDENT_RESOLVE_FAILED, clientId, id), e);
+            logger.error(String.format(ERROR_ENABLING_ALERTS, clientId, id), e);
+            throw new ServiceException(String.format(ERROR_ENABLING_ALERTS, clientId, id), e);
         }
+
+
     }
 
-    @Async
-    public void triggerIncidentForClient(String clientId) {
+
+    public void triggerIncidentForClient(String clientId) throws IOException {
         logger.info("Incident started  for  client." + clientId);
-        validateClientId(clientId);
+
+        clientValidationService.validateClientId(clientId);
+
+        if (!rateLimiterService.canTrigger(INCIDENT_COMPUTE_TOPIC,
+                clientId)) {
+            logger.info("Skipping incident for clientId: {} (sent within the last 5 minutes)", clientId);
+            throw new ServiceException(INCIDENT_TRIGGERED_RECENTLY);
+        }
+
         try {
-            incidentHandlingService.processIncidentsForClient(clientId);
+            pubSubPublisher.publishToPubSub(INCIDENT_COMPUTE_TOPIC, clientId);
         }
         catch (Exception e) {
             logger.error(ERROR_PROCESSING_INCIDENT + clientId, e);
-//            RollbarManager.sendExceptionOnRollBar(ERROR_PROCESSING_INCIDENT, e);
+            failureHandler.handleFailure(ERROR_PROCESSING_INCIDENT + clientId, e);
         }
-
     }
 
 
-    @Async
     public void triggerIncidentForAllClients()  {
         // Trigger incident for all clients
         logger.info("Triggering incident for all clients...");
+
+        if (!rateLimiterService.canTrigger(INCIDENT_COMPUTE_TOPIC,
+                ALL_CLIENT_INCIDENT)) {
+            logger.info("Skipping incident for clientId: {} (sent within the last 5 minutes)", ALL_CLIENT_INCIDENT);
+            throw new ServiceException(INCIDENT_TRIGGERED_RECENTLY);
+        }
+
         List <String> clientIds = metricsRepository.getDistinctClientId();
 
         for (String clientId : clientIds) {
-            triggerIncidentForClient(clientId);
+            pubSubPublisher.publishToPubSub(INCIDENT_COMPUTE_TOPIC, clientId);
         }
 
         logger.info("Incident completed for all clients.");
     }
 
-    @Async
+
     public void triggerEmailForClient(String clientId){
-        validateClientId(clientId);
+        clientValidationService.validateClientId(clientId);
+        if (!rateLimiterService.canTrigger(EMAIL_CACHE,
+                clientId)) {
+            logger.info("Skipping email for clientId: {} (sent within the last 5 minutes)", clientId);
+            throw new ServiceException(EMAIL_SENT_RECENTLY);
+        }
         incidentToEmailService.sendEmail(clientId);
     }
 
-    @Async
     public void triggerEmailForAllClient() {
+        if (!rateLimiterService.canTrigger(EMAIL_CACHE,
+                ALL_CLIENT_EMAIL)) {
+            logger.info("Skipping email for clientId: {} (sent within the last 5 minutes)", ALL_CLIENT_EMAIL);
+            throw new ServiceException(EMAIL_SENT_RECENTLY);
+        }
         incidentToEmailService.sendEmailsForAllClient();
         logger.info("Incident completed for all clients.");
     }

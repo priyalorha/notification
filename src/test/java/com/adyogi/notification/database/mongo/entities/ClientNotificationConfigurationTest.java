@@ -15,7 +15,7 @@
 //    @Test
 //    void testStaticValueDeserialization() throws Exception {
 //        String json = "{\n" +
-//                "  \"objectId\": \"12345\",\n" +
+//                "  \"objectIdentifier\": \"12345\",\n" +
 //                "  \"clientId\": \"client_001\",\n" +
 //                "  \"name\": \"Sample Notification\",\n" +
 //                "  \"triggerConditions\": [\n" +
@@ -35,7 +35,7 @@
 //        ClientNotificationConfiguration configuration = objectMapper.readValue(json, ClientNotificationConfiguration.class);
 //
 //        assertNotNull(configuration);
-//        assertEquals("12345", configuration.getObjectId());
+//        assertEquals("12345", configuration.getObjectIdentifier());
 //        assertEquals("client_001", configuration.getClientId());
 //        assertEquals("Sample Notification", configuration.getName());
 //
@@ -61,7 +61,7 @@
 //    @Test
 //    void testStaticIntValueDeserialization() throws Exception {
 //        String json = "{\n" +
-//                "  \"objectId\": \"12345\",\n" +
+//                "  \"objectIdentifier\": \"12345\",\n" +
 //                "  \"clientId\": \"client_001\",\n" +
 //                "  \"name\": \"Sample Notification\",\n" +
 //                "  \"triggerConditions\": [\n" +
@@ -81,7 +81,7 @@
 //        ClientNotificationConfiguration configuration = objectMapper.readValue(json, ClientNotificationConfiguration.class);
 //
 //        assertNotNull(configuration);
-//        assertEquals("12345", configuration.getObjectId());
+//        assertEquals("12345", configuration.getObjectIdentifier());
 //        assertEquals("client_001", configuration.getClientId());
 //        assertEquals("Sample Notification", configuration.getName());
 //
@@ -106,7 +106,7 @@
 //    @Test
 //    void testDateDynamicValueDeserialization() throws Exception {
 //        String json = "{\n" +
-//                "  \"objectId\": \"12345\",\n" +
+//                "  \"objectIdentifier\": \"12345\",\n" +
 //                "  \"clientId\": \"client_001\",\n" +
 //                "  \"name\": \"Sample Notification\",\n" +
 //                "  \"triggerConditions\": [\n" +
@@ -126,7 +126,7 @@
 //        ClientNotificationConfiguration configuration = objectMapper.readValue(json, ClientNotificationConfiguration.class);
 //
 //        assertNotNull(configuration);
-//        assertEquals("12345", configuration.getObjectId());
+//        assertEquals("12345", configuration.getObjectIdentifier());
 //        assertEquals("client_001", configuration.getClientId());
 //        assertEquals("Sample Notification", configuration.getName());
 //
@@ -151,7 +151,7 @@
 //    @Test
 //    void testFullClientNotificationConfigurationDeserialization() throws Exception {
 //        String json = "{\n" +
-//                "  \"objectId\": \"12345\",\n" +
+//                "  \"objectIdentifier\": \"12345\",\n" +
 //                "  \"clientId\": \"client_001\",\n" +
 //                "  \"name\": \"Sample Notification\",\n" +
 //                "  \"triggerConditions\": [\n" +
@@ -175,7 +175,7 @@
 //        ClientNotificationConfiguration configuration = objectMapper.readValue(json, ClientNotificationConfiguration.class);
 //
 //        assertNotNull(configuration);
-//        assertEquals("12345", configuration.getObjectId());
+//        assertEquals("12345", configuration.getObjectIdentifier());
 //        assertEquals("client_001", configuration.getClientId());
 //        assertEquals("Sample Notification", configuration.getName());
 //        assertEquals("ACTIVE", configuration.getStatus());

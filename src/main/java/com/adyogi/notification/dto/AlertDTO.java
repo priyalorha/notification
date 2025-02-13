@@ -3,12 +3,14 @@ package com.adyogi.notification.dto;
 import com.adyogi.notification.utils.constants.RequestDTOConstants;
 import com.adyogi.notification.utils.constants.TableConstants;
 import com.adyogi.notification.validators.EnsureList;
+import com.adyogi.notification.validators.OnCreate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -26,16 +28,19 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.MISSIN
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode()
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Valid
-public class DefaultAlertDTO {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AlertDTO  {
 
+    @JsonProperty(RequestDTOConstants.CLIENT_ID)
+    private String clientId;
 
     @JsonProperty(RequestDTOConstants.OBJECT_ID)
     private String objectId;
 
     @JsonProperty(RequestDTOConstants.NAME)
-    @NotBlank(message = MISSING_ALERT_NAME)
+    @NotBlank(groups = OnCreate.class, message = MISSING_ALERT_NAME)
     private String name;
 
     @Size(min=1, message = TRIGGER_MIN_LENGTH)
@@ -43,15 +48,15 @@ public class DefaultAlertDTO {
     @Valid
     @JsonProperty(RequestDTOConstants.TRIGGER_CONDITIONS)
     @EnsureList
-    @NotNull(message = TRIGGER_CONDITION_REQUIRED)
+    @NotNull(groups = OnCreate.class, message = TRIGGER_CONDITION_REQUIRED)
     private List<TriggerConditionDTO> triggerConditions;
 
     @JsonProperty(RequestDTOConstants.STATUS)
-    @NotNull(message = MISSING_STATUS)
-    private TableConstants.STATUS status;
+    @NotNull(groups = OnCreate.class, message = MISSING_STATUS)
+    private TableConstants.ALERT_STATUS status;
 
     @JsonProperty(RequestDTOConstants.MESSAGE)
-    @NotBlank(message = MESSAGE_REQUIRED)
+    @NotBlank(groups = OnCreate.class, message = MESSAGE_REQUIRED)
     private String message;
 
 
@@ -59,11 +64,10 @@ public class DefaultAlertDTO {
     private Integer alertResendIntervalMin;
 
 
-    @NotEmpty(message = MISSING_ALERT_CHANNEL)
+    @NotEmpty(groups = OnCreate.class,message = MISSING_ALERT_CHANNEL)
     @JsonProperty(RequestDTOConstants.ALERT_CHANNEL_FIELD_NAME)
     private List<TableConstants.ALERT_CHANNEL> alertChannel;
 
     private Date createdAt;
     private Date updatedAt;
-
 }

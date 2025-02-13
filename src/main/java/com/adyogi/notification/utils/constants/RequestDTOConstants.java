@@ -3,9 +3,10 @@ package com.adyogi.notification.utils.constants;
 public interface RequestDTOConstants {
 
     String CLIENT_ID = "client_id";
-    String METRIC_NAME = "metric_name";
+    String METRIC = "metric";
     String OBJECT_TYPE = "object_type";
     String OBJECT_ID = "object_id";
+    String OBJECT_IDENTIFIER = "object_identifier";
     String VALUE = "value";
     String VALUE_DATA_TYPE = "value_datatype";
     String CREATED_AT = "created_at";

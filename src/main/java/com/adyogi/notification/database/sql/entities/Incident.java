@@ -7,14 +7,18 @@ import com.adyogi.notification.configuration.AlertChannelStringListConverter;
 import com.adyogi.notification.utils.constants.BigQueryConstants;
 import com.adyogi.notification.utils.constants.TableConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 import static com.adyogi.notification.utils.constants.TableConstants.*;
@@ -28,29 +32,30 @@ import static com.adyogi.notification.utils.constants.TableConstants.*;
 @IdClass(IncidentId.class)
 @Builder
 @DynamicUpdate
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class Incident  implements Serializable {
 
     @Id
-    @Column(name = ALERT_ID, nullable = false)
+    @Column(name = ALERT_ID, nullable = false,  length = 50)
     private String alertId;
 
     @Id
-    @Column(name = CLIENT_ID, nullable = false)
+    @Column(name = CLIENT_ID, nullable = false,  length = 50)
     private String clientId;
 
     @Id
-    @Column(name = METRIC_NAME_COL_NAME, nullable = false)
+    @Column(name = METRIC_COL_NAME, nullable = false,  length = 50)
     @Enumerated(EnumType.STRING) // Map ENUM as string
-    private TableConstants.METRIC_NAME metricName;
+    private METRIC metric;
 
     @Id
-    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false)
+    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false,  length = 50)
     @Enumerated(EnumType.STRING) // Map ENUM as string
     private TableConstants.OBJECT_TYPE objectType;
 
     @Id
-    @Column(name = OBJECT_ID, nullable = false)
-    private String objectId;
+    @Column(name = OBJECT_IDENTIFIER, nullable = false,  length = 100)
+    private String objectIdentifier;
 
 
     @Column(name = MESSSAGE, nullable = false)
@@ -67,7 +72,7 @@ public class Incident  implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = STATUS_COL_NAME, nullable = false)
-    private TableConstants.STATUS status;
+    private ALERT_STATUS status;
 
     @Column(name = BASE_VALUE_INCIDENT_COL, nullable = false)
     private String baseValue;
@@ -103,17 +108,19 @@ public class Incident  implements Serializable {
 
     public Map<String, Object> toMap() { // Use Object as value type
         Map<String, Object> map = new HashMap<>();
+        map.put(BigQueryConstants.BIG_QUERY_ID, this.incidentId);
         map.put(BigQueryConstants.INCIDENT_ID, this.incidentId);
         map.put(BigQueryConstants.CLIENT_ID, this.clientId);
-        map.put(BigQueryConstants.METRIC_NAME, String.valueOf(this.metricName));
+        map.put(BigQueryConstants.METRIC, String.valueOf(this.metric));
         map.put(BigQueryConstants.OBJECT_TYPE, String.valueOf(this.objectType.toString()));
-        map.put(BigQueryConstants.OBJECT_ID, this.objectId);
+        map.put(BigQueryConstants.OBJECT_IDENTIFIER, this.objectIdentifier);
         map.put(BigQueryConstants.VALUE, this.value);
         map.put(BigQueryConstants.VALUE_DATATYPE, String.valueOf(this.valueDataType));
         map.put(BigQueryConstants.CREATED_AT, this.createdAt.toString());
         map.put(BigQueryConstants.UPDATED_AT, this.updatedAt.toString());
         map.put(BigQueryConstants.ALERT_ID, this.alertId);
         map.put(BigQueryConstants.MESSSAGE, this.message);
+        map.put(BigQueryConstants.ALERT_CHANNEL,  this.alertChannel.toString());
         map.put(BigQueryConstants.NOTIFICATION_STATUS, String.valueOf(this.notificationStatus));
         map.put(BigQueryConstants.INCIDENT_STATUS, String.valueOf(this.incidentStatus));
         map.put(BigQueryConstants.STATUS, String.valueOf(this.status));
@@ -130,12 +137,12 @@ public class Incident  implements Serializable {
 
     // this is for reference, we have used this for lookup,
     public String getMetricId(){
-        return this.getClientId() + this.getMetricName() + this.getObjectType() + this.getObjectId();
+        return this.getClientId() + this.getMetric() + this.getObjectType() + this.getObjectIdentifier();
     }
 
     // this is for reference, we have used this for lookup,
     public String getBaselineId(){
-        return this.alertId + this.getClientId() + this.getMetricName() + this.getObjectType() + this.getObjectId();
+        return this.alertId + this.getClientId() + this.getMetric() + this.getObjectType() + this.getObjectIdentifier();
     }
 
 }

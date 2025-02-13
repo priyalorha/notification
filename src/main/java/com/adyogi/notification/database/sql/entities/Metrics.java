@@ -20,21 +20,18 @@ import static com.adyogi.notification.utils.constants.TableConstants.*;
 public class Metrics{
 
     @Id
-    @Column(name = CLIENT_ID, nullable = false, length = 50)
     private String clientId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = METRIC_NAME_COL_NAME, nullable = false)
-    private TableConstants.METRIC_NAME metricName;// Composite key
+    @Id
+    private TableConstants.METRIC metric;// Composite key
 
     @Id
-    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false)
     @Enumerated(EnumType.STRING) // Map ENUM as string
     private TableConstants.OBJECT_TYPE objectType;
 
     @Id
-    @Column(name = OBJECT_ID, nullable = false, length = 50)
-    private String objectId; // Composite key
+    private String objectIdentifier;
 
     @Column(name = VALUE)
     private String value;
@@ -50,7 +47,7 @@ public class Metrics{
 
     // this is for reference, we have used this for lookup,
     public String getMetricId(){
-        return this.getClientId() + this.getMetricName() + this.getObjectType() + this.getObjectId();
+        return this.getClientId() + this.getMetric() + this.getObjectType() + this.getObjectIdentifier();
     }
 
 }
