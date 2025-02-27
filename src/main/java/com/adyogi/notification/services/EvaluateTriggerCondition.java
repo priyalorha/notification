@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import static com.adyogi.notification.utils.constants.ConfigConstants.UTC;
 import static com.adyogi.notification.utils.constants.ErrorConstants.DATA_TYPE_MISMATCH;
 import static com.adyogi.notification.utils.constants.ErrorConstants.UNSUPPORTED_VALUE_TYPE;
+import static com.adyogi.notification.utils.constants.TableConstants.*;
 import static com.adyogi.notification.utils.constants.ValidationConstants.*;
 
 
@@ -50,19 +51,19 @@ public class EvaluateTriggerCondition {
         }
 
         switch (operator) {
-            case "EQUALS":
+            case EQUALS_OPERATOR:
                 return metricValue.compareTo(baseValue) == 0;
-            case "GREATER_THAN_EQUAL_TO":
+            case GREATER_THAN_EQUAL_TO_OPERATOR:
                 return metricValue.compareTo(baseValue) >= 0;
-            case "LESS_THAN_EQUAL_TO":
+            case LESS_THAN_EQUAL_TO_OPERATOR:
                 return metricValue.compareTo(baseValue) <= 0;
-            case "GREATER_THAN":
+            case GREATER_THAN_OPERATOR:
                 return metricValue.compareTo(baseValue) > 0;
-            case "LESS_THAN":
+            case LESS_THAN_OPERATOR:
                 return metricValue.compareTo(baseValue) < 0;
-            case "NOT_EQUAL":
+            case NOT_EQUALS_OPERATOR:
                 return metricValue.compareTo(baseValue) != 0;
-            case "DELTA":
+            case DELTA_OPERATOR:
                 return metricValue.compareTo(baseValue) > 0;
             default:
                 throw new IllegalArgumentException("Unsupported operator: " + operator);
@@ -103,7 +104,7 @@ public class EvaluateTriggerCondition {
         float baselineValue = context.getBaseline().getValue() != null ? Float.parseFloat(context.getBaseline().getValue()) : 0;
         float staticValue = staticFloatValue.getValue();
 
-        if (!DELTA_DATA_TYPE.equals(context.getTriggerCondition().getOperator().toString())) {
+        if (!DELTA_OPERATOR.equals(context.getTriggerCondition().getOperator().toString())) {
             return staticFloatValue.getCompareWithPrevious() ?
                     checkCondition(metricValue, baselineValue, context.getTriggerCondition().getOperator().toString()) :
                     checkCondition(metricValue, staticValue, context.getTriggerCondition().getOperator().toString());
@@ -123,7 +124,7 @@ public class EvaluateTriggerCondition {
         float changed_value = Float.parseFloat(context.getMetric().getValue());
         float change = (changed_value - initial_value) / initial_value * 100;
 
-        if (!DELTA_DATA_TYPE.equals(context.getTriggerCondition().getOperator().toString())) {
+        if (!DELTA_OPERATOR.equals(context.getTriggerCondition().getOperator().toString())) {
             return checkCondition(change, percentageValue.getPercentage(), context.getTriggerCondition().getOperator().toString());
         } else {
             return checkCondition(Math.abs(change), percentageValue.getPercentage(), context.getTriggerCondition().getOperator().toString());
