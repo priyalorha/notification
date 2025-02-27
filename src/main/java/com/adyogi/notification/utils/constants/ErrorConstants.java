@@ -118,4 +118,6 @@ public interface ErrorConstants {
 
         String INVALID_VALUE_TYPE = "Value must be an instance of %s for metric: %s";
 
+        String DATA_TYPE_MISMATCH = "Data type mismatch";
+
 }

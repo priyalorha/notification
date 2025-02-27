@@ -42,6 +42,8 @@ public interface ValidationConstants {
     String INTEGER_DATA_TYPE = "INTEGER";
     String DATE_DATA_TYPE = "DATE";
 
+    String DELTA_DATA_TYPE = "DELTA";
+
     String TRUE_VALUE = "true";
     String FALSE_VALUE = "false";
 }

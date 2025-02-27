@@ -3,6 +3,7 @@ package com.adyogi.notification.services;
 import com.adyogi.notification.database.sql.entities.Baseline;
 import com.adyogi.notification.database.sql.entities.Metrics;
 import com.adyogi.notification.dto.*;
+import com.adyogi.notification.utils.constants.TableConstants;
 import com.adyogi.notification.utils.logging.LogUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,11 +14,13 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import static com.adyogi.notification.utils.constants.ConfigConstants.UTC;
+import static com.adyogi.notification.utils.constants.ErrorConstants.DATA_TYPE_MISMATCH;
 import static com.adyogi.notification.utils.constants.ErrorConstants.UNSUPPORTED_VALUE_TYPE;
+import static com.adyogi.notification.utils.constants.ValidationConstants.*;
 
 
 @Service
@@ -73,15 +76,15 @@ public class EvaluateTriggerCondition {
     }
 
     private boolean processStaticIntValue(StaticIntValueDTO staticIntValue, ProcessingContext context) {
-        if (!"INTEGER".equalsIgnoreCase(context.getMetric().getValueDataType())) {
-            throw new IllegalArgumentException("Data type mismatch");
+        if (!INTEGER_DATA_TYPE.equalsIgnoreCase(context.getMetric().getValueDataType())) {
+            throw new IllegalArgumentException(DATA_TYPE_MISMATCH);
         }
 
         int metricValue = Integer.parseInt(context.getMetric().getValue());
         int baselineValue = context.getBaseline().getValue() != null ? Integer.parseInt(context.getBaseline().getValue()) : 0;
         int staticValue = staticIntValue.getValue();
 
-        if (!"DELTA".equals(context.getTriggerCondition().getOperator().toString())) {
+        if (!DELTA_DATA_TYPE.equals(context.getTriggerCondition().getOperator().toString())) {
             return staticIntValue.getCompareWithPrevious() ?
                     checkCondition(metricValue, baselineValue, context.getTriggerCondition().getOperator().toString()) :
                     checkCondition(metricValue, staticValue, context.getTriggerCondition().getOperator().toString());
@@ -92,15 +95,15 @@ public class EvaluateTriggerCondition {
     }
 
     private boolean processStaticFloatValue(StaticFloatValueDTO staticFloatValue, ProcessingContext context) {
-        if (!"FLOAT".equalsIgnoreCase(context.getMetric().getValueDataType())) {
-            throw new IllegalArgumentException("Data type mismatch");
+        if (!FLOAT_DATA_TYPE.equalsIgnoreCase(context.getMetric().getValueDataType())) {
+            throw new IllegalArgumentException(DATA_TYPE_MISMATCH);
         }
 
         float metricValue = Float.parseFloat(context.getMetric().getValue());
         float baselineValue = context.getBaseline().getValue() != null ? Float.parseFloat(context.getBaseline().getValue()) : 0;
         float staticValue = staticFloatValue.getValue();
 
-        if (!"DELTA".equals(context.getTriggerCondition().getOperator().toString())) {
+        if (!DELTA_DATA_TYPE.equals(context.getTriggerCondition().getOperator().toString())) {
             return staticFloatValue.getCompareWithPrevious() ?
                     checkCondition(metricValue, baselineValue, context.getTriggerCondition().getOperator().toString()) :
                     checkCondition(metricValue, staticValue, context.getTriggerCondition().getOperator().toString());
@@ -111,7 +114,7 @@ public class EvaluateTriggerCondition {
     }
 
     private boolean processPercentageValue(PercentageValueDTO percentageValue, ProcessingContext context) {
-        if ("MATCH_RATE".equals(context.getMetric().getMetric().toString())) {
+        if (TableConstants.METRIC.MATCH_RATE.equals(context.getMetric().getMetric())) {
             return checkCondition(Float.parseFloat(context.getMetric().getValue()),
                     percentageValue.getPercentage(), context.getTriggerCondition().getOperator().toString());
         }
@@ -120,7 +123,7 @@ public class EvaluateTriggerCondition {
         float changed_value = Float.parseFloat(context.getMetric().getValue());
         float change = (changed_value - initial_value) / initial_value * 100;
 
-        if (!"DELTA".equals(context.getTriggerCondition().getOperator().toString())) {
+        if (!DELTA_DATA_TYPE.equals(context.getTriggerCondition().getOperator().toString())) {
             return checkCondition(change, percentageValue.getPercentage(), context.getTriggerCondition().getOperator().toString());
         } else {
             return checkCondition(Math.abs(change), percentageValue.getPercentage(), context.getTriggerCondition().getOperator().toString());
@@ -131,11 +134,11 @@ public class EvaluateTriggerCondition {
         int dateOffset = dynamicDay.getDayOffset();
 
         LocalDateTime metricTime = Instant.parse(context.getMetric().getValue())
-                .atZone(ZoneId.of("UTC"))
+                .atZone(ZoneId.of(UTC))
                 .toLocalDateTime();
 
         LocalDateTime baselineTime = Instant.parse(context.getBaseline().getValue())
-                .atZone(ZoneId.of("UTC"))
+                .atZone(ZoneId.of(UTC))
                 .toLocalDateTime();
 
         return checkCondition(metricTime.minusDays(dateOffset), baselineTime, context.getTriggerCondition().getOperator().toString());

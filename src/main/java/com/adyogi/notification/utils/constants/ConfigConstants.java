@@ -57,4 +57,6 @@ public interface ConfigConstants {
     String SENDGRID_EMAIL_FORMAT = "text/html";
 
     int MAX_CACHE_RATE_LIMITER = 1000;
+
+    String UTC = "UTC";
 }
