@@ -32,16 +32,50 @@ public class PubSubPublisher {
         this.pubSubConfig = pubSubConfig;
     }
 
-    /**
-     * Publishes a message to a specified Pub/Sub topic.
-     *
-     * @param topicId        The Pub/Sub topic to publish to.
-     * @param messageDetails A map of key-value pairs to be published in the message.
-     * @throws IOException          If an error occurs during publishing.
-     * @throws ExecutionException   If an error occurs when getting the result of the publish.
-     * @throws InterruptedException If the publishing thread is interrupted.
-     */
-    public void publishToPubSub(String topicId, Map<String, Object> messageDetails) {
+    public void publishToPubSub(String topicId, String message) {
+        // Load projectId from configuration
+        String projectId = pubSubConfig.getProjectId();
+
+        // Set up the Pub/Sub publisher
+        ProjectTopicName topicName = ProjectTopicName.of(projectId, topicId);
+        Publisher publisher = null;
+
+        try {
+            publisher = Publisher.newBuilder(topicName).build();
+
+            PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
+                    .setData(ByteString.copyFromUtf8(message))
+                    .build();
+
+            // Publish the message and block until it's published
+            publisher.publish(pubsubMessage).get();
+            logger.info("Message published to topic " + topicId + " successfully.");
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to publish message to Pub/Sub.", e);
+            RollbarManager.sendExceptionOnRollBar("Failed to publish message to Pub/Sub ", e);
+        } finally {
+            // Ensure the publisher is shut down properly
+            if (publisher != null) {
+                publisher.shutdown();
+            }
+        }
+    }
+
+
+        /**
+         * Publishes a message to a specified Pub/Sub topic.
+         *
+         * @param topicId        The Pub/Sub topic to publish to.
+         * @param messageDetails A map of key-value pairs to be published in the message.
+         * @throws IOException          If an error occurs during publishing.
+         * @throws ExecutionException   If an error occurs when getting the result of the publish.
+         * @throws InterruptedException If the publishing thread is interrupted.
+         */
+
+
+
+        public void publishToPubSub(String topicId, Map<String, Object> messageDetails) {
         // Load projectId from configuration
         String projectId = pubSubConfig.getProjectId();
 

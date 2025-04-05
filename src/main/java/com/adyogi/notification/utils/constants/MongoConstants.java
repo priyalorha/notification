@@ -8,13 +8,14 @@ public interface MongoConstants {
     String BACK4APP_PARSE_SESSION_TOKEN_HEADER="X-Parse-Session-Token";
 
     String ALERT_CHANNEL_COLLECTION_NAME = "AlertChannel";
-    String CLIENT_ALERT_COLLECTION_NAME = "ClientAlert";
+    String CLIENT_ALERT_COLLECTION_NAME = "Alert";
     String DEFAULT_ALERT_COLLECTION_NAME = "DefaultAlert";
     String CLIENT_COLLECTION_NAME = "Client";
-    String PARSE_CLIENT_ID = "clientId";
     String OBJECT_ID = "_id";
-    String UPDATED_AT = "updatedAt";
-    String CREATED_AT = "createdAt";
+    String PARSE_CLIENT_ID = "clientId";
+    String OBJECT_IDENTIFIER = "objectIdentifier";
+    String UPDATED_AT = "_updated_at";
+    String CREATED_AT = "_created_at";
     String COMMUNICATION_CONFIGURATION = "communicationConfiguration";
     String NAME = "name";
     String TRIGGER_CONDITIONS = "triggerConditions";
@@ -32,7 +33,9 @@ public interface MongoConstants {
         STATIC_INT,
         STATIC_BOOLEAN,
         DATE_DYNAMIC,
-        PERCENTAGE;
+        PERCENTAGE,
+        STATIC_FLOAT
+
     }
 
 
@@ -45,10 +48,13 @@ public interface MongoConstants {
     String DATE_DYNAMIC = "DATE_DYNAMIC";
     String PERCENTAGE = "PERCENTAGE";
     String STATIC_BOOLEAN = "STATIC_BOOLEAN";
+    String STATIC_FLOAT = "STATIC_FLOAT";
 
-    String PARSE_CLIENT_OBJECT_ID = "objectId";
+    String PARSE_CLIENT_OBJECT_IDENTIFIER = "objectIdentifier";
 
     String VALUE = "VALUE";
 
+
+    String CLIENT_FLAG_ATTRITED_COLUMN="flag_attrited";
 
 }

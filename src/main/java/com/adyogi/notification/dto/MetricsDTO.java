@@ -1,9 +1,11 @@
 package com.adyogi.notification.dto;
 
 
+import com.adyogi.notification.utils.constants.BigQueryConstants;
 import com.adyogi.notification.utils.constants.RequestDTOConstants;
 import com.adyogi.notification.utils.constants.TableConstants;
 import com.adyogi.notification.utils.constants.TableConstants.*;
+import com.adyogi.notification.validators.OnCreate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,6 +15,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.adyogi.notification.utils.constants.ValidationConstants.*;
 
 @Data
@@ -21,34 +26,31 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.*;
 @NoArgsConstructor // Include NoArgsConstructor for deserialization (optional)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
+
 public class MetricsDTO {
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String id;
-
-
-    @NotNull(message = MISSING_CLIENT_ID)
+    @NotNull(groups = OnCreate.class, message = MISSING_CLIENT_ID)
     @JsonProperty(RequestDTOConstants.CLIENT_ID)
     private String clientId;
 
-    @NotNull(message = MISSING_METRICS_NAME)
-    @JsonProperty(RequestDTOConstants.METRIC_NAME)
-    private TableConstants.METRIC_NAME metricName;
+    @NotNull(groups = OnCreate.class, message = MISSING_METRICS_NAME)
+    @JsonProperty(RequestDTOConstants.METRIC)
+    private TableConstants.METRIC metric;
 
-    @NotNull(message = MISSING_OBJECT_TYPE)
+    @NotNull(groups = OnCreate.class, message = MISSING_OBJECT_TYPE)
     @JsonProperty(RequestDTOConstants.OBJECT_TYPE)
 
     private TableConstants.OBJECT_TYPE objectType;
 
-    @NotNull(message = MISSING_OBJECT_ID)
-    @JsonProperty(RequestDTOConstants.OBJECT_ID)
-    private String objectId;
+    @NotNull(groups = OnCreate.class, message = MISSING_OBJECT_IDENTIFIER)
+    @JsonProperty(RequestDTOConstants.OBJECT_IDENTIFIER)
+    private String objectIdentifier;
 
-    @NotBlank(message = MISSING_VALUE)
+    @NotBlank(groups = OnCreate.class, message = MISSING_VALUE)
     @JsonProperty(RequestDTOConstants.VALUE)
     private String value;
 
-    @NotBlank(message = MISSING_VALUE_DATA_TYPE)
+    @NotBlank(groups = OnCreate.class, message = MISSING_VALUE_DATA_TYPE)
     @JsonProperty(RequestDTOConstants.VALUE_DATA_TYPE)
     private String valueDataType;
 
@@ -60,17 +62,31 @@ public class MetricsDTO {
 
 
     public MetricsDTO(String clientId,
-                      String metricName,
+                      String metric,
                       String objectType,
-                      String objectId,
+                      String objectIdentifier,
                       String value,
                       String valueDataType) {
 
         this.clientId = clientId;
-        this.metricName = METRIC_NAME.valueOf(metricName);
+        this.metric = METRIC.valueOf(metric);
         this.objectType = OBJECT_TYPE.valueOf(objectType.toUpperCase());
-        this.objectId = objectId;
+        this.objectIdentifier = objectIdentifier;
         this.value = value;
         this.valueDataType = valueDataType;
+    }
+
+    public Map<String, Object> toMap() { // Use Object as value type
+        Map<String, Object> map = new HashMap<>();
+        map.put(BigQueryConstants.CLIENT_ID, this.clientId);
+        map.put(BigQueryConstants.METRIC, this.metric.toString());
+        map.put(BigQueryConstants.OBJECT_TYPE, this.objectType.toString());
+        map.put(BigQueryConstants.OBJECT_IDENTIFIER, this.objectIdentifier);
+        map.put(BigQueryConstants.VALUE, this.value);
+        map.put(BigQueryConstants.VALUE_DATATYPE, this.valueDataType);
+        map.put(BigQueryConstants.CREATED_AT, this.createdAt.toString());
+        map.put(BigQueryConstants.UPDATED_AT, this.updatedAt.toString());
+        return map;
+
     }
 }

@@ -1,8 +1,8 @@
 package com.adyogi.notification.components;
 
-import com.adyogi.notification.database.mongo.entities.ClientAlert;
+import com.adyogi.notification.database.mongo.entities.Alert;
 import com.adyogi.notification.database.mongo.entities.TriggerCondition;
-import com.adyogi.notification.dto.ClientAlertDTO;
+import com.adyogi.notification.dto.AlertDTO;
 import com.adyogi.notification.dto.TriggerConditionDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import static com.adyogi.notification.utils.constants.ErrorConstants.ERROR_TRIGGER_CONDITION_DTO;
 
 @Component
-public class ClientAlertEntityDTOMapper {
+public class AlertEntityDTOMapper {
 
     @Autowired
     ModelMapper modelMapper;
@@ -28,8 +28,8 @@ public class ClientAlertEntityDTOMapper {
     @PostConstruct
     public void postConstruct() {
         // Configure mapping for ClientNotificationConfiguration and DTO without triggerConditions
-        modelMapper.createTypeMap(ClientAlert.class, ClientAlertDTO.class)
-                .addMappings(new PropertyMap<ClientAlert, ClientAlertDTO>() {
+        modelMapper.createTypeMap(Alert.class, AlertDTO.class)
+                .addMappings(new PropertyMap<Alert, AlertDTO>() {
                     @Override
                     protected void configure() {
                         // Skip mapping for triggerConditions, will map manually
@@ -37,8 +37,8 @@ public class ClientAlertEntityDTOMapper {
                     }
                 });
 
-        modelMapper.createTypeMap(ClientAlertDTO.class, ClientAlert.class)
-                .addMappings(new PropertyMap<ClientAlertDTO, ClientAlert>() {
+        modelMapper.createTypeMap(AlertDTO.class, Alert.class)
+                .addMappings(new PropertyMap<AlertDTO, Alert>() {
                     @Override
                     protected void configure() {
                         // Skip mapping for triggerConditions, will map manually
@@ -48,27 +48,27 @@ public class ClientAlertEntityDTOMapper {
     }
 
     // Convert entity to DTO with triggerConditions mapped manually
-    public ClientAlertDTO convertEntityToDTO(ClientAlert clientAlert) {
-        ClientAlertDTO clientAlertDTO = modelMapper.map(clientAlert, ClientAlertDTO.class);
+    public AlertDTO convertEntityToDTO(Alert alert) {
+        AlertDTO alertDTO = modelMapper.map(alert, AlertDTO.class);
 
-        List<TriggerConditionDTO> triggerConditionDTOList = convertTriggerConditionsToDTO(clientAlert.getTriggerConditions());
+        List<TriggerConditionDTO> triggerConditionDTOList = convertTriggerConditionsToDTO(alert.getTriggerConditions());
 
         // Set the converted list of trigger conditions to the DTO
-        clientAlertDTO.setTriggerConditions(triggerConditionDTOList);
+        alertDTO.setTriggerConditions(triggerConditionDTOList);
 
-        return clientAlertDTO;
+        return alertDTO;
     }
 
     // Convert DTO to entity with triggerConditions mapped manually
-    public ClientAlert convertDTOToEntity(ClientAlertDTO clientAlertDTO) {
-        ClientAlert clientAlert = modelMapper.map(clientAlertDTO, ClientAlert.class);
+    public Alert convertDTOToEntity(AlertDTO alertDTO) {
+        Alert alert = modelMapper.map(alertDTO, Alert.class);
 
-        List<TriggerCondition> triggerConditionList = convertTriggerConditionsToEntity(clientAlertDTO.getTriggerConditions());
+        List<TriggerCondition> triggerConditionList = convertTriggerConditionsToEntity(alertDTO.getTriggerConditions());
 
         // Set the converted list of trigger conditions to the entity
-        clientAlert.setTriggerConditions(triggerConditionList);
+        alert.setTriggerConditions(triggerConditionList);
 
-        return clientAlert;
+        return alert;
     }
 
     // Helper method to convert list of TriggerCondition entities to DTOs

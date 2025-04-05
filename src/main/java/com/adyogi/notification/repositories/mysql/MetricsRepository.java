@@ -21,12 +21,12 @@ public interface MetricsRepository extends JpaRepository<Metrics, MetricId> {
 
     public List<Metrics> findMetricByClientId(String clientId);
 
-    @Query("SELECT m FROM Metrics m WHERE m.clientId = :clientId AND m.metricName IN :metricNames")
-    List<Metrics> findAllByMetricNameAndClientId(@Param("clientId") String clientId,
-                                                 @Param("metricNames") List<TableConstants.METRIC_NAME> metricNames);
+    @Query("SELECT m FROM Metrics m WHERE m.clientId = :clientId AND m.metric IN :metrics")
+    List<Metrics> findAllByMetricAndClientId(@Param("clientId") String clientId,
+                                                 @Param("metrics") List<TableConstants.METRIC> metrics);
 
-    @Query("SELECT m FROM Metrics m WHERE m.metricName IN :metricNames and clientId NOT IN :clientIds")
-    Page<Metrics> findAllByMetricNameWhereNotClientId (@Param("metricNames") List<TableConstants.METRIC_NAME> metricNames,
+    @Query("SELECT m FROM Metrics m WHERE m.metric IN :metrics and clientId IN :clientIds")
+    Page<Metrics> findAllByMetricNameWhereClientId (@Param("metrics") List<TableConstants.METRIC> metrics,
                                                        @Param("clientIds") List<String> clientId,
                                                        Pageable pageable);
 

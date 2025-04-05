@@ -44,31 +44,7 @@ public class ValueEntityDTOMapper {
 
     // Utility method to map a specific string to a DTO class based on its content
     public Object mapEntityToDTO(String valueEntity) throws JsonProcessingException {
-        if (valueEntity.contains(STATIC_INT)) {
-            return convertEntityToDTO(valueEntity, StaticIntValueDTO.class);
-        } else if (valueEntity.contains(DATE_DYNAMIC)) {
-            return convertEntityToDTO(valueEntity, DynamicDayValueDTO.class);
-        } else if (valueEntity.contains(PERCENTAGE)) {
-            return convertEntityToDTO(valueEntity, PercentageValueDTO.class);
-        } else if (valueEntity.contains(STATIC_BOOLEAN)) {
-            return convertEntityToDTO(valueEntity, StaticBooleanValueDTO.class);
-        } else {
-            return convertEntityToDTO(valueEntity, StaticValueDTO.class);
-        }
-    }
 
-    // Utility method to map specific strings to Entity classes based on its content
-    public Object mapDTOToEntity(String valueDTO) throws JsonProcessingException {
-        if (valueDTO.contains(STATIC_INT)) {
-            return convertDTOToEntity(valueDTO, StaticIntValueDTO.class);
-        } else if (valueDTO.contains(DATE_DYNAMIC)) {
-            return convertDTOToEntity(valueDTO, DynamicDayValueDTO.class);
-        } else if (valueDTO.contains(PERCENTAGE)) {
-            return convertDTOToEntity(valueDTO, PercentageValueDTO.class);
-        } else if (valueDTO.contains(STATIC_BOOLEAN)) {
-            return convertDTOToEntity(valueDTO, StaticBooleanValueDTO.class);
-        } else {
-            return convertDTOToEntity(valueDTO, StaticValueDTO.class);
-        }
+        return objectMapper.readValue(valueEntity, ValueDTO.class);
     }
 }

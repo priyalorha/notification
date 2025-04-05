@@ -1,11 +1,11 @@
 package com.adyogi.notification.controller;
 
-import com.adyogi.notification.database.sql.entities.Incident;
 import com.adyogi.notification.dto.IncidentDTO;
 import com.adyogi.notification.services.IncidentService;
 import com.adyogi.notification.utils.constants.ConfigConstants;
 import com.adyogi.notification.utils.logging.annotation.MDCValue;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +24,7 @@ public class IncidentController {
 
     private final IncidentService incidentService;
 
-    @GetMapping("{client_id}/incident")
+    @GetMapping("{client_id}/incidents")
     public ResponseEntity<List<IncidentDTO>> getIncidentsByClientId(
             @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
             @PathVariable(CLIENT_ID) @NotBlank String clientId,
@@ -35,7 +35,7 @@ public class IncidentController {
                 limit));
     }
 
-    @GetMapping("{client_id}/incident/{incident_id}")
+    @GetMapping("{client_id}/incidents/{incident_id}")
     public ResponseEntity<IncidentDTO> getIncidentById(
             @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
             @PathVariable(CLIENT_ID) @NotBlank String clientId,
@@ -43,59 +43,27 @@ public class IncidentController {
         return ResponseEntity.ok(incidentService.getIncidentById(clientId, incidentId));
     }
 
-    @PostMapping("{client_id}/incident/{incident_id}:resolve")
-    public ResponseEntity<String> resolveIncident(
+    @PatchMapping("{client_id}/incidents/{incident_id}")
+    public ResponseEntity<String> patchIncident(
             @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
             @PathVariable(CLIENT_ID) @NotBlank String clientId,
-            @PathVariable(INCIDENT_ID) @NotBlank String incidentId) {
-        incidentService.resolveIncident(clientId, incidentId);
-        return ResponseEntity.ok(INCIDENT_RESOLVED_SUCCESSFULLY);
+            @PathVariable(INCIDENT_ID) @NotBlank String incidentId,
+            @RequestBody IncidentDTO incidentDTO) {
+        incidentService.patchIncident(clientId, incidentId , incidentDTO);
+        return ResponseEntity.ok(INCIDENT_UPDATED_SUCCESSFULLY);
     }
 
-    @PostMapping("{client_id}/incident/{incident_id}:pause")
-    public ResponseEntity<String> pauseIncident(
-            @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
-            @PathVariable(CLIENT_ID) @NotBlank String clientId,
-            @PathVariable(INCIDENT_ID) @NotBlank String incidentId) {
-        incidentService.pauseIncidentAlerts(clientId, incidentId);
-        return ResponseEntity.ok(ALERTS_FOR_INCIDENT_PAUSED_SUCCESSFULLY);
-    }
-
-    @PostMapping("{client_id}/incident/{incident_id}:enable")
-    public ResponseEntity<String> enableIncidentAlerts(
-            @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
-            @PathVariable(CLIENT_ID) @NotBlank String clientId,
-            @PathVariable(INCIDENT_ID) @NotBlank String incidentId) {
-        incidentService.enableIncidentAlert(clientId, incidentId);
-        return ResponseEntity.ok(ALERTS_FOR_INCIDENT_ENABLED_SUCCESSFULLY);
-    }
-
-
-    @PostMapping("/incident:trigger")
-    public ResponseEntity<String> triggerIncidentForAllClients(
-            @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
-            @PathVariable(CLIENT_ID) @NotBlank String clientId) {
-        incidentService.triggerIncidentForClient(clientId);
-        return ResponseEntity.ok(INCIDENT_TRIGGERED_SUCCESSFULLY);
-    }
-
-    @PostMapping("/incident:trigger-for-all-clients")
-    public ResponseEntity<String> triggerIncidentForAllClients() {
-        incidentService.triggerIncidentForAllClients();
-        return ResponseEntity.ok(INCIDENT_TRIGGERED_SUCCESSFULLY);
-    }
-
-    @PostMapping("{client_id}/incident:email")
+    @PostMapping("{client_id}:notify-incidents")
     public  ResponseEntity<String> triggerEmailForClient(
             @MDCValue(ConfigConstants.CLIENT_ID_LOGGING_FIELD_NAME)
             @PathVariable(CLIENT_ID) @NotBlank String clientId) {
-    incidentService.triggerEmailForClient(clientId);
-        return ResponseEntity.ok(INCIDENT_TRIGGERED_SUCCESSFULLY);
+        incidentService.triggerEmailForClient(clientId);
+        return new ResponseEntity<>(EMAIL_TRIGGERED_SUCCESSFULLY, HttpStatus.ACCEPTED);
     }
 
-    @PostMapping("/incident:email")
+    @PostMapping("/notify-incidents")
     public  ResponseEntity<String> triggerEmailForAllClient() {
         incidentService.triggerEmailForAllClient();
-        return ResponseEntity.ok(INCIDENT_TRIGGERED_SUCCESSFULLY);
+        return new ResponseEntity<>(EMAIL_TRIGGERED_SUCCESSFULLY, HttpStatus.ACCEPTED);
     }
 }

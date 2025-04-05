@@ -1,5 +1,6 @@
 package com.adyogi.notification.utils.constants;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 import java.util.List;
@@ -16,9 +17,9 @@ public interface TableConstants {
 
     String ID = "id";
     String CLIENT_ID = "client_id";
-    String METRIC_NAME_COL_NAME = "metric_name";
+    String METRIC_COL_NAME = "metric";
     String OBJECT_TYPE_COL_NAME = "object_type";
-    String OBJECT_ID = "object_id";
+    String OBJECT_IDENTIFIER = "object_identifier";
     String VALUE = "value";
     String VALUES = "values";
     String VALUE_DATA_TYPE = "value_datatype";
@@ -45,7 +46,7 @@ public interface TableConstants {
     String PARSE_CLIENT_ID = "parse_client_id";
 
 
-    enum METRIC_NAME {
+    enum METRIC {
         INTEGRATION_FAILURE("INTEGRATION_FAILURE"),
         MATCH_RATE("MATCH_RATE"),
         STOPLOSS_LIMIT_REACHED("STOPLOSS_LIMIT_REACHED"),
@@ -55,10 +56,11 @@ public interface TableConstants {
         STOPLOSS_RAN_DATE("STOPLOSS_RAN_DATE");
 
 
-        String metricName;
-        METRIC_NAME(String metricName) {
-            this.metricName = metricName;
+        String metric;
+        METRIC(String metric) {
+            this.metric = metric;
         }
+
     }
 
     enum OBJECT_TYPE {
@@ -69,11 +71,16 @@ public interface TableConstants {
         CATALOG_TRACKING_MATCH_RATE("CATALOG_TRACKING_MATCH_RATE"),
         CATALOG_FB_MATCH_RATE("CATALOG_FB_MATCH_RATE"),
         CATALOG_GOOGLE_MATCH_RATE("CATALOG_GOOGLE_MATCH_RATE"),
-        CATALOG_WEBSITE_ORDER_MATCH_RATE("CATALOG_WEBSITE_ORDER_MATCH_RATE");
+        CATALOG_WEBSITE_ORDER_MATCH_RATE("CATALOG_WEBSITE_ORDER_MATCH_RATE"),
+        GOOGLE_ANALTYTICS("GOOGLE_ANALTYTICS"),
+        ADOBE_ANALYTICS("ADOBE_ANALYTICS");
+
+
         String objectType;
 
         OBJECT_TYPE(String objectType) {
             this.objectType = objectType;}
+
     }
 
     enum INCIDENT_STATUS {
@@ -87,7 +94,7 @@ public interface TableConstants {
         FAILED
     }
 
-    enum STATUS {
+    enum ALERT_STATUS {
         ENABLED,
         DISABLED,
 
@@ -118,8 +125,8 @@ public interface TableConstants {
             CATALOG_WEBSITE_ORDER_MATCH_RATE);
 
 
-    String INSERT_METRICS_SQL_RAW_QUERY = "INSERT INTO metrics (client_id, metric_name, value, value_datatype, created_at, updated_at, " +
-            "object_type, object_id) VALUES ";
+    String INSERT_METRICS_SQL_RAW_QUERY = "INSERT INTO metrics (client_id, metric, value, value_datatype, created_at, updated_at, " +
+            "object_type, object_identifier) VALUES ";
 
     String INSERT_METRICS_SQL_RAW_QUERY_DUPLICATE_KEY_UPDATE_SQL =
             "ON DUPLICATE KEY UPDATE " +
@@ -153,6 +160,14 @@ public interface TableConstants {
 
     }
 
-
+    String EQUALS_OPERATOR = "EQUALS";
+    String NOT_EQUALS_OPERATOR = "NOT_EQUALS";
+    String CONTAINS_OPERATOR = "CONTAINS";
+    String NOT_CONTAINS_OPERATOR = "NOT_CONTAINS";
+    String GREATER_THAN_EQUAL_TO_OPERATOR = "GREATER_THAN_EQUAL_TO";
+    String LESS_THAN_EQUAL_TO_OPERATOR = "LESS_THAN_EQUAL_TO";
+    String GREATER_THAN_OPERATOR = "GREATER_THAN";
+    String LESS_THAN_OPERATOR = "LESS_THAN";
+    String DELTA_OPERATOR = "DELTA";
 
 }

@@ -1,6 +1,9 @@
 package com.adyogi.notification.dto;
 
 import com.adyogi.notification.utils.constants.MongoConstants;
+import com.adyogi.notification.validators.OnCreate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -16,7 +19,7 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.TRIGGE
 @AllArgsConstructor
 public class PercentageValueDTO extends ValueDTO{
     @JsonProperty( PERCENTAGE)
-    @NotNull(message = TRIGGER_CONDITION_PERCENTATE_REQUIRED)
+    @NotNull(groups = OnCreate.class, message = TRIGGER_CONDITION_PERCENTATE_REQUIRED)
     private float percentage;
     @Override // This annotation is optional here but clarifies intent
     public MongoConstants.ValueType getType() {

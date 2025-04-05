@@ -13,18 +13,19 @@ import static com.adyogi.notification.utils.constants.RequestDTOConstants.*;
 @ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class IncidentDTO {
 
     @JsonProperty(ALERT_ID)
     private String alertId;
     @JsonProperty(CLIENT_ID)
     private String clientId;
-    @JsonProperty(METRIC_NAME)
-    private String metricName;
+    @JsonProperty(METRIC)
+    private String metric;
     @JsonProperty(OBJECT_TYPE)
     private String objectType;
-    @JsonProperty(OBJECT_ID)
-    private String objectId;
+    @JsonProperty(OBJECT_IDENTIFIER)
+    private String objectIdentifier;
     @JsonProperty(MESSAGE)
     private String message;
     @JsonProperty(NOTIFICATION_STATUS)
@@ -48,7 +49,7 @@ public class IncidentDTO {
     @JsonProperty(ALERT_CHANNEL_FIELD_NAME)
     private String alertChannel;
     @JsonProperty(NOTIFICATION_SENT_AT)
-    private String notificationSentAT;
+    private String notificationSentAt;
     @JsonProperty(INCIDENT_ID)
     private Long incidentId;
 

@@ -1,6 +1,9 @@
 package com.adyogi.notification.dto;
 
 import com.adyogi.notification.utils.constants.MongoConstants;
+import com.adyogi.notification.validators.OnCreate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -17,8 +20,8 @@ import static com.adyogi.notification.utils.constants.ValidationConstants.TRIGGE
 @AllArgsConstructor
 public class DynamicDayValueDTO extends ValueDTO {
     @JsonProperty(DAY_OFFSET)
-    @Min(value = 0, message = TRIGGER_CONDITION_MIN)
-    @NotNull(message = TRIGGER_CONDITION_DATE_OFFSET_REQUIRED)
+    @Min(groups = OnCreate.class, value = 0, message = TRIGGER_CONDITION_MIN)
+    @NotNull(groups = OnCreate.class, message = TRIGGER_CONDITION_DATE_OFFSET_REQUIRED)
     private Integer dayOffset;
 
 

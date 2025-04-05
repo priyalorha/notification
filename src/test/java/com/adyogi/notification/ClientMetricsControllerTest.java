@@ -74,9 +74,9 @@
 //
 //        RequestBuilder requestBuilder = MockMvcRequestBuilders
 //                .post("/client/123/metrics")
-//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric_name\":\"INTEGRATION_FAILURE\", " +
+//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric\":\"INTEGRATION_FAILURE\", " +
 //                        "\"object_type\":\"CLIENT_ID\", " +
-//                        "\"object_id\":1, \"value\":1, \"value_datatype\":true}")
+//                        "\"object_identifier\":1, \"value\":1, \"value_datatype\":true}")
 //                .contentType(MediaType.APPLICATION_JSON);
 //
 //
@@ -86,7 +86,7 @@
 //        assertEquals(response.getStatus(), HttpStatus.CREATED.value());
 //
 //        assertEquals(response.getContentAsString(),
-//                "{\"client_id\":\"123\",\"metric_name\":\"INTEGRATION_FAILURE\",\"object_type\":\"CLIENT_ID\",\"object_id\":\"1\",\"value\":\"1\",\"value_datatype\":\"String\",\"created_at\":\"2024-12-12T00:00\",\"updated_at\":\"2024-12-12T00:00\"}");
+//                "{\"client_id\":\"123\",\"metric\":\"INTEGRATION_FAILURE\",\"object_type\":\"CLIENT_ID\",\"object_identifier\":\"1\",\"value\":\"1\",\"value_datatype\":\"String\",\"created_at\":\"2024-12-12T00:00\",\"updated_at\":\"2024-12-12T00:00\"}");
 //    }
 //
 //    @Test
@@ -100,9 +100,9 @@
 //
 //        RequestBuilder requestBuilder = MockMvcRequestBuilders
 //                .post("/client/123/metrics")
-//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric_name\":\"INTEGRATION_FAILURE\", " +
+//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric\":\"INTEGRATION_FAILURE\", " +
 //                        "\"object_type\":\"CLIENT_ID\", " +
-//                        "\"object_id\":1, \"value\":1, \"value_datatype\":true}")
+//                        "\"object_identifier\":1, \"value\":1, \"value_datatype\":true}")
 //                .contentType(MediaType.APPLICATION_JSON);
 //
 //
@@ -127,9 +127,9 @@
 //
 //        RequestBuilder requestBuilder = MockMvcRequestBuilders
 //                .post("/client/456/metrics")
-//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric_name\":\"INTEGRATION_FAILURE\", " +
+//                .accept(MediaType.APPLICATION_JSON).content("{\"client_id\":\"123\", \"metric\":\"INTEGRATION_FAILURE\", " +
 //                        "\"object_type\":\"CLIENT_ID\", " +
-//                        "\"object_id\":1, \"value\":1, \"value_datatype\":true}")
+//                        "\"object_identifier\":1, \"value\":1, \"value_datatype\":true}")
 //                .contentType(MediaType.APPLICATION_JSON);
 //
 //

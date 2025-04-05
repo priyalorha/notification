@@ -14,5 +14,4 @@ public class ProductsetAlertDTO {
     private String name;
     private String impact;
     private String action;
-    private String description;
 }

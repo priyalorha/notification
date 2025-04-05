@@ -1,15 +1,13 @@
 package com.adyogi.notification.services;
 
 import com.adyogi.notification.bigquery.bigquerycomponent.BigQueryClient;
-import com.adyogi.notification.components.DefaultAlertEntityDTOMapper;
-import com.adyogi.notification.database.mongo.entities.ClientAlert;
-import com.adyogi.notification.database.mongo.entities.DefaultAlert;
+import com.adyogi.notification.components.AlertEntityDTOMapper;
+import com.adyogi.notification.database.mongo.entities.Alert;
 import com.adyogi.notification.database.sql.entities.Baseline;
 import com.adyogi.notification.database.sql.entities.Incident;
 import com.adyogi.notification.database.sql.entities.Metrics;
-import com.adyogi.notification.dto.DefaultAlertDTO;
-import com.adyogi.notification.repositories.back4app.ClientAlertRepository;
-import com.adyogi.notification.repositories.back4app.DefaultAlertRepository;
+import com.adyogi.notification.dto.AlertDTO;
+import com.adyogi.notification.repositories.back4app.AlertRepository;
 import com.adyogi.notification.repositories.mysql.BaselineRepository;
 import com.adyogi.notification.repositories.mysql.IncidentRepository;
 import com.adyogi.notification.repositories.mysql.MetricsRepository;
@@ -26,8 +24,10 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
+import static com.adyogi.notification.utils.constants.ConfigConstants.*;
 import static com.adyogi.notification.utils.constants.TableConstants.*;
 
 @Component
@@ -36,7 +36,7 @@ public class IncidentHandlingService {
     private final Logger logger = LogUtil.getInstance();
 
     @Autowired
-    private DefaultAlertEntityDTOMapper defaultAlertEntityDTOMapper;
+    private AlertEntityDTOMapper alertEntityDTOMapper;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -46,10 +46,8 @@ public class IncidentHandlingService {
     BaselineRepository baselineRepository;
 
     @Autowired
-    ClientAlertRepository clientAlertRepository;
+    AlertRepository alertRepository;
 
-    @Autowired
-    DefaultAlertRepository defaultAlertRepository;
     @Autowired
     BigQueryClient bigQueryConfiguration;
 
@@ -65,50 +63,31 @@ public class IncidentHandlingService {
     @Autowired
     ObjectMapper objectMapper;
 
+
     // Fetch active client notification configurations
-    public List<ClientAlert> fetchActiveClientNotification(String clientId) {
+    public List<Alert> fetchActiveClientNotification(String clientId) {
         try {
             logger.info("Fetching active notifications for clientId: {}", clientId);
-            return clientAlertRepository.findAlertsByClientIdAndStatus(clientId, String.valueOf(STATUS.ENABLED));
+            return alertRepository.findAlertsByClientIdAndStatus(clientId, String.valueOf(ALERT_STATUS.ENABLED));
         } catch (Exception e) {
             logger.error("Error fetching client notification configurations for clientId: {}", clientId, e);
             throw e;
         }
     }
 
-    public List<ClientAlert> fetchDeactiveClientNotification(String clientId) {
-        try {
-            logger.info("Fetching active notifications for clientId: {}", clientId);
-            return clientAlertRepository.findAlertsByClientIdAndStatus(clientId, String.valueOf(STATUS.DISABLED));
-        } catch (Exception e) {
-            logger.error("Error fetching client notification configurations for clientId: {}", clientId, e);
-            throw e;
-        }
-    }
-
-    // Fetch default notification configurations
-    public List<DefaultAlert> fetchDefaultNotificationConfiguration() {
-        try {
-            logger.info("Fetching default notification configurations");
-            return defaultAlertRepository.findByStatus(STATUS.ENABLED);
-        } catch (Exception e) {
-            logger.error("Error fetching default notification configurations", e);
-            throw e;
-        }
-    }
 
     // Fetch baselines for the given metric
     public List<Baseline> fetchBaselinesFromMetric(Metrics metrics) {
         try {
-            logger.info("Fetching baselines for metric: {}", metrics.getMetricName());
+            logger.info("Fetching baselines for metric: {}", metrics.getMetric());
             return baselineRepository.findBaselineByIdExceptAlertId(
                     metrics.getClientId(),
-                    metrics.getMetricName(),
+                    metrics.getMetric(),
                     metrics.getObjectType(),
-                    metrics.getObjectId()
+                    metrics.getObjectIdentifier()
             );
         } catch (Exception e) {
-            logger.error("Error fetching baselines for metric: {}", metrics.getMetricName(), e);
+            logger.error("Error fetching baselines for metric: {}", metrics.getMetric(), e);
             throw e;
         }
     }
@@ -119,13 +98,13 @@ public class IncidentHandlingService {
         Optional <Incident> incident;
         try {
             logger.info("Fetching incident for baseline: {} and metric: {}",
-                    baseline.getAlertId(), metrics.getMetricName());
-            incident =  incidentRepository.findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdAndIncidentStatus(
+                    baseline.getAlertId(), metrics.getMetric());
+            incident =  incidentRepository.findByAlertIdAndClientIdAndMetricAndObjectTypeAndObjectIdentifierAndIncidentStatus(
                     baseline.getAlertId(),
                     baseline.getClientId(),
-                    baseline.getMetricName(),
+                    baseline.getMetric(),
                     baseline.getObjectType(),
-                    baseline.getObjectId(),
+                    baseline.getObjectIdentifier(),
                     INCIDENT_STATUS.OPEN);
 
             if (incident.isEmpty()) {
@@ -155,26 +134,27 @@ public class IncidentHandlingService {
     }
 
     // Create an incident from the baseline and notification configuration
-    private Incident createIncident(Baseline baseline, ClientAlert notificationConfig, Metrics metrics) {
+    private Incident createIncident(Baseline baseline, Alert notificationConfig, Metrics metrics) {
         try {
-            logger.info("Creating incident for baseline: {} and notificationConfig: {}", baseline.getAlertId(), notificationConfig.getObjectId());
+            logger.info("Creating incident for baseline: {} and notificationConfig: {}", baseline.getAlertId(),
+                    notificationConfig.getObjectId());
             return Incident.builder().incidentId(System.currentTimeMillis())
                     .alertId(baseline.getAlertId())
                     .clientId(baseline.getClientId())
-                    .metricName(baseline.getMetricName())
+                    .metric(baseline.getMetric())
                     .objectType(baseline.getObjectType())
-                    .objectId(baseline.getObjectId())
+                    .objectIdentifier(baseline.getObjectIdentifier())
                     .alertChannel(notificationConfig.getAlertChannel())
                     .message(notificationConfig.getMessage())
                     .notificationStatus(TableConstants.NOTIFICATION_STATUS.PENDING)
                     .incidentStatus(TableConstants.INCIDENT_STATUS.OPEN)
-                    .status(TableConstants.STATUS.ENABLED)
+                    .status(ALERT_STATUS.ENABLED)
                     .baseValue(baseline.getValue())
                     .value(metrics.getValue())
                     .valueDataType(metrics.getValueDataType())
                     .alertResendIntervalMin(notificationConfig.getAlertResendIntervalMin())
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                    .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
                     .build();
         } catch (Exception e) {
             logger.error("Error creating incident for baseline: {}", baseline.getAlertId(), e);
@@ -197,40 +177,29 @@ public class IncidentHandlingService {
     }
 
     // Generate notification config map (client-specific + default configurations)
-    @Cacheable(value = "notificationConfigMap", key = "#clientId")
-    private Map<String, ClientAlert> generateNotificationConfigMap(String clientId) {
-        Map<String, ClientAlert> notificationConfigMap = new HashMap<>();
+    @Cacheable(value = CACHE_NOTIFICATION_CONFIG_MAP, key = CLIENT_ID_KEY)
+    private Map<String, Alert> generateNotificationConfigMap(String clientId) {
+        Map<String, Alert> notificationConfigMap = new HashMap<>();
 
-        List<ClientAlert> clientAlert = fetchActiveClientNotification(clientId);
-
-        //should not check for default client alert if even a single alert has been configured
-        if (clientAlert.isEmpty() && !fetchDeactiveClientNotification(clientId).isEmpty()) {
-            logger.error("No client notification configuration found for clientId: {}", clientId);
-            return notificationConfigMap;
-        }
+        List<Alert> alert = fetchActiveClientNotification(clientId);
 
         // Map client-specific notifications
-        for (ClientAlert notification : clientAlert) {
+        for (Alert notification : alert) {
             notificationConfigMap.put(notification.getObjectId(), notification);
         }
 
-        // Map default notifications
-        for (DefaultAlert defaultNotification : fetchDefaultNotificationConfiguration()) {
-            ClientAlert d = modelMapper.map(defaultNotification, ClientAlert.class);
-            notificationConfigMap.put(defaultNotification.getObjectId(), d);
-        }
 
         return notificationConfigMap;
     }
 
-    private void handleIncidentCreationOrUpdate(Baseline baseline, Metrics metrics, ClientAlert notificationConfig) {
+    private void handleIncidentCreationOrUpdate(Baseline baseline, Metrics metrics, Alert notificationConfig) {
         Incident existingIncident = getIncident(baseline, metrics);
 
         if (existingIncident == null) {
             Incident newIncident = createIncident(baseline, notificationConfig, metrics);
             saveIncident(newIncident);
         } else {
-            existingIncident.setUpdatedAt(LocalDateTime.now());
+            existingIncident.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
             existingIncident.setValue(metrics.getValue());
             saveIncident(existingIncident);
         }
@@ -243,22 +212,22 @@ public class IncidentHandlingService {
         if (existingIncident != null) {
             existingIncident.setValue(metrics.getValue());
             existingIncident.setIncidentStatus(TableConstants.INCIDENT_STATUS.RESOLVED);
-            existingIncident.setUpdatedAt(LocalDateTime.now());
+            existingIncident.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
 
             saveIncident(existingIncident);
             insertIncidentToBigQuery(existingIncident);
         }
     }
 
-    private void evaluateBaselineAgainstMetrics(Metrics metrics, Baseline baseline, Map<String, ClientAlert> notificationConfigMap)  {
-        ClientAlert notificationConfig = notificationConfigMap.get(baseline.getAlertId());
+    private void evaluateRuleWrtBaselineAndMetric(Metrics metrics, Baseline baseline, Map<String, Alert> notificationConfigMap)  {
+        Alert notificationConfig = notificationConfigMap.get(baseline.getAlertId());
 
         if (notificationConfig != null) {
-            DefaultAlertDTO defaultAlertDTO = defaultAlertEntityDTOMapper.convertEntityToDTO(notificationConfig);
+            AlertDTO defaultAlertDTO = alertEntityDTOMapper.convertEntityToDTO(notificationConfig);
             // TODO should be changed to accomodate multiple alert conditions
-            boolean canIncidentBeCreated = new EvaluateTriggerCondition(
+            boolean canIncidentBeCreated = new EvaluateTriggerCondition().evaluateCondition(
                     defaultAlertDTO.getTriggerConditions().get(0),
-                    baseline, metrics).evaluateCondition();
+                    metrics, baseline);
 
             if (canIncidentBeCreated) {
                 handleIncidentCreationOrUpdate(baseline, metrics, notificationConfig);
@@ -270,43 +239,61 @@ public class IncidentHandlingService {
         }
     }
 
-    @Async
+    public void handleMissingBaselineWrtAlerts(Metrics metrics, List<Baseline> baselines, Map<String, Alert> notificationConfigMap)
+    {
+        if (baselines.isEmpty()) {
+            baselineService.createBaselineFromMetric( metrics);
+            logger.error("No baselines found for metric: {}", metrics.getMetric());
+            return;
+        }
+
+        Map<String, Baseline> baselineMap = new HashMap<>();
+        for (Baseline base : baselines) {
+            baselineMap.put(base.getAlertId(), base);
+        }
+
+        for (String alertId : notificationConfigMap.keySet()) {
+            if (notificationConfigMap.get(alertId).getTriggerConditions().get(0).getMetricName().equals(metrics.getMetric()) &&
+            !baselineMap.containsKey(alertId)) {
+                baselineService.createBaselineFromAlert(alertId, metrics.getClientId());
+            }
+        }
+
+    }
+
+
 // Process a new metric and create incidents if necessary
-    public void evaluateAndCreateIncidentFromMetric(Metrics metrics,  Map<String, ClientAlert> notificationConfigMap ) {
+    public void evaluateAndCreateIncidentFromMetric(Metrics metrics,  Map<String, Alert> notificationConfigMap ) {
         if(notificationConfigMap.isEmpty())
         {
             logger.error("No notification configuration found for client: {}", metrics.getClientId());
         }
         try {
+
+            handleMissingBaselineWrtAlerts(metrics, fetchBaselinesFromMetric(metrics), notificationConfigMap);
+            //calling in case new baseline is created,
             List<Baseline> baselines = fetchBaselinesFromMetric(metrics);
-            if (baselines.isEmpty()) {
-                baselineService.createBaselineFromMetric( metrics);
-                logger.error("No baselines found for metric: {}", metrics.getMetricName());
-                return;
-            }
-
-            logger.info(notificationConfigMap);
             logger.info("Length baseline: " + baselines.size());
-
             // Process each baseline
             for (Baseline baseline : baselines) {
-                evaluateBaselineAgainstMetrics(metrics, baseline, notificationConfigMap);
+                evaluateRuleWrtBaselineAndMetric(metrics, baseline, notificationConfigMap);
             }
         } catch (Exception e) {
-            logger.error("Error processing new metric: {}", metrics.getMetricName(), e);
+            logger.error("Error processing new metric: {}", metrics.getMetric(), e);
             throw e;
         }
     }
 
-    @Async
+
+    @Async(PROCESS_BULK_INCIDENT_TASK)
     public void processIncidentsForClient(String clientId)
     {
-        Map<String, ClientAlert> notificationConfigMap = generateNotificationConfigMap(clientId);
+        Map<String, Alert> notificationConfigMap = generateNotificationConfigMap(clientId);
 
         if(notificationConfigMap.isEmpty())
         {
             logger.error("No notification configuration found for client: {}", clientId);
-            throw new RuntimeException("No notification configuration found for client: " + clientId);
+            return;
         }
         List<Metrics> metrics = metricsRepository.findMetricByClientId(clientId);
         for (Metrics metric : metrics) {

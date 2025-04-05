@@ -4,10 +4,7 @@ import com.adyogi.notification.utils.constants.TableConstants;
 import lombok.*;
 
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import java.io.Serializable;
 
 import static com.adyogi.notification.utils.constants.TableConstants.*;
@@ -20,18 +17,18 @@ import static com.adyogi.notification.utils.constants.TableConstants.*;
 @Embeddable
 public class MetricId implements Serializable {
 
-    @Column(name = CLIENT_ID)
+    @Column(name = CLIENT_ID, nullable = false, length = 50)
     private String clientId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = METRIC_NAME_COL_NAME)
-    private TableConstants.METRIC_NAME metricName;
+    @Column(name = METRIC_COL_NAME, nullable = false, length = 50)
+    private METRIC metric;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = OBJECT_TYPE_COL_NAME)
+    @Column(name = OBJECT_TYPE_COL_NAME, nullable = false, length = 50)
     private TableConstants.OBJECT_TYPE objectType;
 
-    @Column(name = OBJECT_ID)
-    private String objectId; // Composite key
+    @Column(name = OBJECT_IDENTIFIER, nullable = false, length = 100)
+    private String objectIdentifier; // Composite key
 
 }

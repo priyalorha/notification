@@ -7,11 +7,12 @@ public interface BigQueryConstants {
     int BATCH_SIZE = 100;
 
     String ID = "ID";
+    String BIG_QUERY_ID = "id";
     String INCIDENT_ID = "incident_id";
     String CLIENT_ID = "client_id";
-    String METRIC_NAME = "metric_name";
+    String METRIC = "metric";
     String OBJECT_TYPE = "object_type";
-    String OBJECT_ID = "object_id";
+    String OBJECT_IDENTIFIER = "object_identifier";
     String VALUE = "value";
     String VALUE_DATATYPE = "value_datatype";
     String CREATED_AT = "created_at";
@@ -22,6 +23,7 @@ public interface BigQueryConstants {
     String BASE_VALUE = "base_value";
     String INCIDENT_STATUS = "incident_status";
     String STATUS = "status";
+    String ALERT_CHANNEL = "alert_channel";
     String NOTIFICATION_SENT_AT = "notification_sent_at";
     String ALERT_RESEND_INTERVAL_MIN = "alert_resend_interval_min";
 

@@ -17,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface IncidentRepository extends JpaRepository<Incident, IncidentId> {
 
-    Optional<Incident> findByIncidentId(@Param("incident_id") Long incident_id);
+    Optional<Incident> findByIncidentId(Long incident_id);
 
     Optional<Incident> findByIncidentIdAndClientId(@Param("incident_id")Long id, @Param("clientId")String ClientId);
 
@@ -35,36 +35,36 @@ public interface IncidentRepository extends JpaRepository<Incident, IncidentId> 
     @Query("SELECT i FROM Incident i WHERE " +
             "i.alertId = :alertId AND " +
             "i.clientId = :clientId AND " +
-            "i.metricName = :metricName AND " +
+            "i.metric = :metric AND " +
             "i.objectType = :objectType AND " +
-            "i.objectId = :objectId AND " +
+            "i.objectIdentifier = :objectIdentifier AND " +
             "i.incidentStatus = :status")
 
-    Optional<Incident> findByAlertIdAndClientIdAndMetricNameAndObjectTypeAndObjectIdAndIncidentStatus(
+    Optional<Incident> findByAlertIdAndClientIdAndMetricAndObjectTypeAndObjectIdentifierAndIncidentStatus(
             @Param("alertId") String alertId,
             @Param("clientId") String clientId,
-            @Param("metricName") TableConstants.METRIC_NAME metricName,
+            @Param("metric") TableConstants.METRIC metric,
             @Param("objectType") TableConstants.OBJECT_TYPE objectType,
-            @Param("objectId") String objectId,
+            @Param("objectIdentifier") String objectIdentifier,
             @Param("status") TableConstants.INCIDENT_STATUS status);
 
 
     @Query("SELECT i FROM Incident i WHERE " +
             "i.clientId = :clientId AND " +
             "i.incidentStatus = :incidentStatus AND " +
-            "i.status = :status")
+            "i.status = :alertStatus")
     List<Incident> findOpenEnabledIncidents(@Param("clientId") String clientId,
                                             @Param("incidentStatus") TableConstants.INCIDENT_STATUS incidentStatus,
-                                            @Param("status") TableConstants.STATUS status);
+                                            @Param("alertStatus") TableConstants.ALERT_STATUS alertStatus);
 
 
 
 
     @Query("SELECT distinct i.clientId FROM Incident i WHERE " +
             "i.incidentStatus = :incidentStatus AND " +
-            "i.status = :status")
+            "i.status = :alertStatus")
 
     List<String> findClientIdsWithOpenIncidents(@Param("incidentStatus") TableConstants.INCIDENT_STATUS incidentStatus,
-                                                @Param("status") TableConstants.STATUS status);
+                                                @Param("alertStatus") TableConstants.ALERT_STATUS alertStatus);
 
 }

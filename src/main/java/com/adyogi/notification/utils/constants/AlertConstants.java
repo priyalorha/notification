@@ -3,8 +3,10 @@ package com.adyogi.notification.utils.constants;
 public interface AlertConstants {
 
     // Metric Names
+    String STOPLOSS_LIMIT_REACHED = "STOPLOSS_LIMIT_REACHED";
     String STOP_LOSS_EXCLUSION_COUNT = "STOP_LOSS_EXCLUSION_COUNT";
     String STOPLOSS_INACTIVITY = "STOPLOSS_INACTIVITY";
+    String STOPLOSS_EXCLUSION_DATE = "STOPLOSS_EXCLUSION_DATE";
     String PRODUCT_SET_COUNT = "PRODUCT_SET_COUNT";
     String INTEGRATION_FAILURE = "INTEGRATION_FAILURE";
     String MATCH_RATE = "MATCH_RATE";
@@ -62,6 +64,8 @@ public interface AlertConstants {
     String RECEIPENTS = "recipients";
     String SUBJECT = "subject";
     String BODY = "body";
+
+    String INCIDENT_COMPUTE_TOPIC = "incident-compute";
 }
 
 

@@ -71,7 +71,7 @@
 ////        metrics.setValue("MATCH_RATE");
 //
 //        when(triggerCondition.getValue()).thenReturn(percentageValue);
-//        when(metrics.getMetricName()).thenReturn(TableConstants.METRIC_NAME.MATCH_RATE);
+//        when(metrics.getMetricName()).thenReturn(TableConstants.METRIC.MATCH_RATE);
 //        when(metrics.getValue()).thenReturn("70");
 //        when(baseline.getValue()).thenReturn("60");
 //        when(triggerCondition.getOperator()).thenReturn(TableConstants.Operator.LESS_THAN);
@@ -84,7 +84,7 @@
 //        assertFalse(service.processTriggerCondition());
 //
 //
-//        when(metrics.getMetricName()).thenReturn(TableConstants.METRIC_NAME.INTEGRATION_FAILURE);
+//        when(metrics.getMetricName()).thenReturn(TableConstants.METRIC.INTEGRATION_FAILURE);
 //        assertTrue(service.processTriggerCondition());
 //    }
 //
